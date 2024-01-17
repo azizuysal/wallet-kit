@@ -1114,7 +1114,7 @@ PODS:
   - RNFS (2.20.0):
     - React-Core
   - SocketRocket (0.6.1)
-  - wallet-kit (0.1.0):
+  - wallet-kit (0.2.0):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
@@ -1378,7 +1378,7 @@ SPEC CHECKSUMS:
   ReactCommon: 45b5d4f784e869c44a6f5a8fad5b114ca8f78c53
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
-  wallet-kit: eaa0e5fa733d5fb9cf5bcc36693413f14ab5666e
+  wallet-kit: 53133e92a36b0eba316601ce1e9552159c87654b
   Yoga: e64aa65de36c0832d04e8c7bd614396c77a80047
 
 PODFILE CHECKSUM: 26cb59e6d2f89b2033324063fa8f99a8e70d0900
