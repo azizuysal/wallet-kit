@@ -1,17 +1,18 @@
-# wallet-kit
+# @azizuysal/wallet-kit
 
-A React Native wrapper for Apple PassKit written in typescript. Google Wallet implementation will be coming soon (hopefully).
+A React Native wrapper for Apple and Google wallet passes written in TypeScript.
+Google wallet passes are not supported yet.
 
 ## Installation
 
 ```sh
-npm install wallet-kit
+npm install @azizuysal/wallet-kit
 ```
 
 ## Usage
 
 ```js
-import { Wallet } from '@react-native/wallet';
+import { multiply } from '@azizuysal/wallet-kit';
 
 // ...
 

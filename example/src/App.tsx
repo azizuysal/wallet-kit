@@ -1,16 +1,19 @@
 import * as React from 'react';
 
+import WalletKit, {
+  WalletButton,
+  WalletButtonStyle,
+} from '@azizuysal/wallet-kit';
 import {
-  StyleSheet,
-  View,
-  Text,
-  SafeAreaView,
   Dimensions,
   NativeEventEmitter,
   NativeModules,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
   type NativeModule,
 } from 'react-native';
-import WalletKit, { WalletButton, WalletButtonStyle } from 'wallet-kit';
 import RNFS from 'react-native-fs';
 
 const App = () => {

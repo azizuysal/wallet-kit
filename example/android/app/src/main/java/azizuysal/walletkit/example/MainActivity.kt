@@ -1,4 +1,4 @@
-package com.walletkitexample
+package azizuysal.walletkit.example
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
