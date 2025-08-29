@@ -37,8 +37,8 @@ const App = () => {
   React.useEffect(() => {
     const listener = emitter.addListener(
       'AddPassCompleted',
-      (event: AddPassCompletedEvent) => {
-        console.log('AddPassCompleted with success: ', event.success);
+      (success: AddPassCompletedEvent) => {
+        console.log('AddPassCompleted with success: ', success);
       }
     );
     return () => listener.remove();

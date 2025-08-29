@@ -113,8 +113,8 @@ const eventEmitter = createWalletEventEmitter();
 
 const subscription = eventEmitter.addListener(
   'AddPassCompleted',
-  (event: AddPassCompletedEvent) => {
-    console.log('Pass added successfully:', event.success);
+  (success: AddPassCompletedEvent) => {
+    console.log('Pass added successfully:', success);
   }
 );
 
@@ -137,6 +137,8 @@ Add a single pass to the wallet.
 #### `addPasses(passDataArray: string[]): Promise<void>`
 Add multiple passes to the wallet.
 
+**Note:** On Android, the Google Wallet API currently only supports adding one JWT at a time. When multiple JWTs are provided, only the first one will be added. For true multi-pass support on Android, you need to combine multiple passes into a single JWT on your server side.
+
 ### Components
 
 #### `<WalletButton />`
@@ -156,14 +158,23 @@ Enum for button styles:
 - `outline` - Black outline on iOS, outline button on Android
 
 #### `AddPassCompletedEvent`
-Event payload with `success: boolean` property.
+Event that returns a boolean value indicating whether the pass was successfully added to the wallet.
 
 ### Error Codes
 
-- `USER_CANCELLED` - User cancelled the operation
-- `ERR_WALLET_NOT_AVAILABLE` - Wallet is not available on the device
-- `ERR_WALLET_UNKNOWN` - Unknown error occurred
+#### Pass Validation Errors
+- `INVALID_PASS` - Invalid pass data format
+- `UNSUPPORTED_VERSION` - Pass version not supported (iOS)
+
+#### User Actions
+- `ERR_WALLET_CANCELLED` - User cancelled the operation
+
+#### System Availability
+- `ERR_WALLET_NOT_AVAILABLE` - Wallet app not available on device
 - `ERR_WALLET_ACTIVITY_NULL` - Android specific: Activity is null
+
+#### Generic Errors
+- `ERR_WALLET_UNKNOWN` - Unknown error occurred
 
 ## Platform Differences
 
