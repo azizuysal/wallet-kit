@@ -22,24 +22,25 @@ const WalletKit = NativeModules.WalletKit
  * Error codes that can be returned by the wallet operations
  */
 export type WalletErrorCode =
-  | 'INVALID_PASS'
-  | 'USER_CANCELLED'
-  | 'NOT_SUPPORTED'
-  | 'PLAY_SERVICES_UNAVAILABLE'
-  | 'ERR_WALLET_NOT_AVAILABLE'
-  | 'ERR_WALLET_CANCELLED'
-  | 'ERR_WALLET_UNKNOWN'
-  | 'ERR_WALLET_ACTIVITY_NULL';
+  // Pass validation errors
+  | 'INVALID_PASS' // Invalid pass data format
+  | 'UNSUPPORTED_VERSION' // Pass version not supported
+
+  // User actions
+  | 'ERR_WALLET_CANCELLED' // User cancelled the operation
+
+  // System availability
+  | 'ERR_WALLET_NOT_AVAILABLE' // Wallet app not available on device
+  | 'ERR_WALLET_ACTIVITY_NULL' // Android: Activity is null
+
+  // Generic errors
+  | 'ERR_WALLET_UNKNOWN'; // Unknown error occurred
 
 /**
  * Event payload for the AddPassCompleted event
+ * The event directly contains a boolean value indicating success
  */
-export interface AddPassCompletedEvent {
-  /**
-   * Whether the pass was successfully added to the wallet
-   */
-  success: boolean;
-}
+export type AddPassCompletedEvent = boolean;
 
 /**
  * Main interface for WalletKit operations
@@ -65,8 +66,11 @@ interface WalletInterface {
    *
    * @param {string} passData - The pass data as a base64-encoded string (iOS) or JWT (Android)
    * @returns {Promise<void>} Resolves when the pass addition UI is shown, rejects if there's an error
-   * @throws {Error} With code 'USER_CANCELLED' if the user cancels the operation
+   * @throws {Error} With code 'INVALID_PASS' if the pass data format is invalid
+   * @throws {Error} With code 'ERR_WALLET_CANCELLED' if the user cancels the operation
    * @throws {Error} With code 'ERR_WALLET_NOT_AVAILABLE' if the wallet is not available
+   * @throws {Error} With code 'ERR_WALLET_ACTIVITY_NULL' if the Android activity is null
+   * @throws {Error} With code 'ERR_WALLET_UNKNOWN' for other errors
    *
    * @example
    * ```typescript
@@ -74,7 +78,7 @@ interface WalletInterface {
    *   await WalletKit.addPass(passData);
    *   console.log('Pass addition UI shown');
    * } catch (error) {
-   *   if (error.code === 'USER_CANCELLED') {
+   *   if (error.code === 'ERR_WALLET_CANCELLED') {
    *     console.log('User cancelled');
    *   }
    * }
@@ -85,10 +89,17 @@ interface WalletInterface {
   /**
    * Add multiple passes to the wallet.
    *
+   * **Note for Android:** Google Wallet API currently only supports adding one JWT at a time.
+   * When multiple JWTs are provided, only the first one will be added. For true multi-pass
+   * support on Android, combine multiple passes into a single JWT on your server.
+   *
    * @param {string[]} passDataArray - Array of pass data strings (base64 for iOS, JWT for Android)
    * @returns {Promise<void>} Resolves when the pass addition UI is shown, rejects if there's an error
-   * @throws {Error} With code 'USER_CANCELLED' if the user cancels the operation
+   * @throws {Error} With code 'INVALID_PASS' if the pass data format is invalid
+   * @throws {Error} With code 'ERR_WALLET_CANCELLED' if the user cancels the operation
    * @throws {Error} With code 'ERR_WALLET_NOT_AVAILABLE' if the wallet is not available
+   * @throws {Error} With code 'ERR_WALLET_ACTIVITY_NULL' if the Android activity is null
+   * @throws {Error} With code 'ERR_WALLET_UNKNOWN' for other errors
    *
    * @example
    * ```typescript

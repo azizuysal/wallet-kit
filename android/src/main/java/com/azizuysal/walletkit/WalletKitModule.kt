@@ -118,17 +118,32 @@ class WalletKitModule(reactContext: ReactApplicationContext) :
       .getPayApiAvailabilityStatus(PayClient.RequestType.SAVE_PASSES)
       .addOnSuccessListener { status ->
         if (status == PayApiAvailabilityStatus.AVAILABLE) {
-          // For multiple passes, concatenate JWT strings
-          val jwts = mutableListOf<String>()
-          for (i in 0 until passDataArray.size()) {
-            passDataArray.getString(i)?.let { jwt ->
-              jwts.add(jwt.trim())
-            }
-          }
+          // Google Wallet API currently only supports adding one JWT at a time
+          // If we have multiple separate JWTs, we'll use the first one
+          // In production, you should either:
+          // 1. Combine multiple passes into a single JWT on the server side
+          // 2. Show multiple "Add to Wallet" buttons for each pass
+          // 3. Implement a custom flow to add passes sequentially
           
-          // Google Wallet expects multiple JWTs to be concatenated
-          val concatenatedJwt = jwts.joinToString("")
-          payClient.savePassesJwt(concatenatedJwt, activity, ADD_TO_GOOGLE_WALLET_REQUEST_CODE)
+          if (passDataArray.size() > 0) {
+            val firstJwt = passDataArray.getString(0)?.trim()
+            if (firstJwt != null) {
+              // Log warning if multiple passes were provided
+              if (passDataArray.size() > 1) {
+                // Note: In a production app, you might want to handle this differently
+                // For now, we'll just add the first pass
+                android.util.Log.w(NAME, "Multiple passes provided but only the first will be added. " +
+                  "Google Wallet API requires passes to be combined in a single JWT.")
+              }
+              payClient.savePassesJwt(firstJwt, activity, ADD_TO_GOOGLE_WALLET_REQUEST_CODE)
+            } else {
+              promise.reject(ERR_WALLET_UNKNOWN, "Invalid pass data")
+              addToGoogleWalletPromise = null
+            }
+          } else {
+            promise.reject(ERR_WALLET_UNKNOWN, "No pass data provided")
+            addToGoogleWalletPromise = null
+          }
         } else {
           promise.reject(ERR_WALLET_NOT_AVAILABLE, "Google Wallet is not available on this device")
           addToGoogleWalletPromise = null
@@ -166,9 +181,8 @@ class WalletKitModule(reactContext: ReactApplicationContext) :
 
   private fun sendAddPassCompletedEvent(success: Boolean) {
     if (listenerCount > 0) {
-      val params = Arguments.createMap()
-      params.putBoolean("success", success)
-      sendEvent(reactApplicationContext, "AddPassCompleted", params)
+      // Send event in the same format as iOS (boolean directly)
+      sendEvent(reactApplicationContext, "AddPassCompleted", success)
     }
   }
 

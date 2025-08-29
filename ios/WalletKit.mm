@@ -8,7 +8,7 @@
 @interface WalletKit () <PKAddPassesViewControllerDelegate> {
     BOOL hasListeners;
 }
-@property (nonatomic, retain) NSArray<PKPass *> *passes;
+@property (nonatomic, strong) NSArray<PKPass *> *passes;
 @end
 
 @implementation WalletKit
@@ -26,7 +26,20 @@ RCT_EXPORT_METHOD(addPass:(NSString *)passData resolve:(RCTPromiseResolveBlock)r
     NSError *error;
     PKPass *pass = [[PKPass alloc] initWithData:data error:&error];
     if (error) {
-        reject(@"Wallet", @"Error in addPass", error);
+        // Use standardized error codes
+        NSString *errorCode = @"ERR_WALLET_UNKNOWN";
+        NSString *errorMessage = @"Failed to create pass from data";
+        
+        if (error.code == PKPassKitErrorInvalidData) {
+            errorCode = @"INVALID_PASS";
+            errorMessage = @"Invalid pass data format";
+        } else if (error.code == PKPassKitErrorUnsupportedVersion) {
+            errorCode = @"UNSUPPORTED_VERSION";
+            errorMessage = @"Pass version not supported";
+        }
+        
+        reject(errorCode, errorMessage, error);
+        self.passes = nil;
         return;
     }
     self.passes = @[pass];
@@ -46,10 +59,26 @@ RCT_EXPORT_METHOD(addPasses:(NSArray<NSString *> *)passDataArray resolve:(RCTPro
     for (NSString *passData in passDataArray) {
         NSData *data = [[NSData alloc] initWithBase64EncodedString:passData options:0];
         PKPass *pass = [[PKPass alloc] initWithData:data error:&error];
+        if (error) {
+            break;
+        }
         [passes addObject:pass];
     }
     if (error) {
-        reject(@"Wallet", @"Error in addPasses", error);
+        // Use standardized error codes
+        NSString *errorCode = @"ERR_WALLET_UNKNOWN";
+        NSString *errorMessage = @"Failed to create pass from data";
+        
+        if (error.code == PKPassKitErrorInvalidData) {
+            errorCode = @"INVALID_PASS";
+            errorMessage = @"Invalid pass data format";
+        } else if (error.code == PKPassKitErrorUnsupportedVersion) {
+            errorCode = @"UNSUPPORTED_VERSION";
+            errorMessage = @"Pass version not supported";
+        }
+        
+        reject(errorCode, errorMessage, error);
+        self.passes = nil;
         return;
     }
     self.passes = passes;
@@ -76,18 +105,23 @@ RCT_EXPORT_METHOD(addPasses:(NSArray<NSString *> *)passDataArray resolve:(RCTPro
 #pragma mark - PKAddPassesViewControllerDelegate
 
 - (void)addPassesViewControllerDidFinish:(PKAddPassesViewController *)controller {
+  __weak typeof(self) weakSelf = self;
   [controller dismissViewControllerAnimated:YES completion:^{
+      __strong typeof(weakSelf) strongSelf = weakSelf;
+      if (!strongSelf) return;
+
       BOOL passesAdded = YES;
       PKPassLibrary *lib = [PKPassLibrary new];
-      for (PKPass *pass in self.passes) {
+      for (PKPass *pass in strongSelf.passes) {
           if (![lib containsPass:pass]) {
               passesAdded = NO;
           }
       }
 //      RCTLog(@"ADDED %d", passesAdded);
-      if (self->hasListeners) {
-          [self sendEventWithName:@"AddPassCompleted" body:@(passesAdded)];
+      if (strongSelf->hasListeners) {
+          [strongSelf sendEventWithName:@"AddPassCompleted" body:@(passesAdded)];
       }
+      strongSelf.passes = nil;
   }];
 }
 
