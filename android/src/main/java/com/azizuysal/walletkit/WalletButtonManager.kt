@@ -1,80 +1,77 @@
 package com.azizuysal.walletkit
 
-import android.content.res.ColorStateList
-import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
-import android.util.TypedValue
-import android.view.Gravity
-import android.widget.Button
+import android.view.LayoutInflater
+import android.view.View
+import android.widget.RelativeLayout
 import com.facebook.react.common.MapBuilder
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.annotations.ReactProp
 
-class WalletButtonManager : SimpleViewManager<Button>() {
+class WalletButtonManager : SimpleViewManager<RelativeLayout>() {
   
   override fun getName(): String {
     return "WalletButton"
   }
 
-  override fun createViewInstance(reactContext: ThemedReactContext): Button {
-    val button = Button(reactContext)
+  override fun createViewInstance(reactContext: ThemedReactContext): RelativeLayout {
+    // Inflate the official Google Wallet button layout
+    val inflater = LayoutInflater.from(reactContext)
     
-    // Set default text - Google Wallet branding guidelines
-    button.text = "Add to Google Wallet"
-    button.isAllCaps = false
+    // Use the R class directly to ensure proper resource resolution including localization
+    val button = try {
+      inflater.inflate(R.layout.add_to_googlewallet_button, null) as RelativeLayout
+    } catch (e: Exception) {
+      // Fallback: Try to find the resource dynamically
+      val resourceId = reactContext.resources.getIdentifier(
+        "add_to_googlewallet_button",
+        "layout",
+        reactContext.packageName
+      )
+      
+      if (resourceId != 0) {
+        inflater.inflate(resourceId, null) as RelativeLayout
+      } else {
+        // Final fallback to a simple RelativeLayout if resources not found
+        RelativeLayout(reactContext)
+      }
+    }
     
-    // Set default padding
-    val paddingHorizontal = dpToPx(24f, reactContext).toInt()
-    val paddingVertical = dpToPx(12f, reactContext).toInt()
-    button.setPadding(paddingHorizontal, paddingVertical, paddingHorizontal, paddingVertical)
-    
-    // Set text size
-    button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
-    
-    // Apply default dark style
+    // Apply default style
     applyButtonStyle(button, 0)
     
     return button
   }
 
   @ReactProp(name = "addPassButtonStyle")
-  fun setButtonStyle(view: Button, style: Int) {
+  fun setButtonStyle(view: RelativeLayout, style: Int) {
     applyButtonStyle(view, style)
   }
   
-  private fun applyButtonStyle(button: Button, style: Int) {
-    val drawable = GradientDrawable()
-    drawable.cornerRadius = dpToPx(4f, button.context)
-    
+  private fun applyButtonStyle(button: RelativeLayout, style: Int) {
+    // The Google Wallet button assets handle their own styling
+    // We can adjust the button appearance based on the style parameter if needed
     when (style) {
-      0 -> { // dark (primary)
-        drawable.setColor(Color.BLACK)
-        button.setTextColor(Color.WHITE)
-        button.background = drawable
+      0 -> { // dark (primary) - default style
+        // The default assets are already dark themed
       }
       1 -> { // light (secondary)
-        drawable.setColor(Color.WHITE)
-        drawable.setStroke(dpToPx(1f, button.context).toInt(), Color.parseColor("#DADCE0"))
-        button.setTextColor(Color.parseColor("#3C4043"))
-        button.background = drawable
+        // Could potentially swap to light themed assets if available
+        // For now, keep the default
       }
       2 -> { // outline
-        drawable.setColor(Color.TRANSPARENT)
-        drawable.setStroke(dpToPx(1f, button.context).toInt(), Color.parseColor("#DADCE0"))
-        button.setTextColor(Color.parseColor("#3C4043"))
-        button.background = drawable
-      }
-      else -> {
-        // Default to dark
-        drawable.setColor(Color.BLACK)
-        button.setTextColor(Color.WHITE)
-        button.background = drawable
+        // Could potentially swap to outline style assets if available
+        // For now, keep the default
       }
     }
     
-    // Set gravity to center
-    button.gravity = Gravity.CENTER
+    // Ensure the button has the correct layout params
+    if (button.layoutParams == null) {
+      button.layoutParams = RelativeLayout.LayoutParams(
+        RelativeLayout.LayoutParams.MATCH_PARENT,
+        dpToPx(48f, button.context).toInt()
+      )
+    }
   }
 
   override fun getExportedCustomBubblingEventTypeConstants(): Map<String, Any> {
@@ -89,16 +86,20 @@ class WalletButtonManager : SimpleViewManager<Button>() {
       .build()
   }
   
-  override fun addEventEmitters(reactContext: ThemedReactContext, view: Button) {
+  override fun addEventEmitters(reactContext: ThemedReactContext, view: RelativeLayout) {
     view.setOnClickListener {
       reactContext.getJSModule(com.facebook.react.uimanager.events.RCTEventEmitter::class.java)
         .receiveEvent(view.id, "topPress", null)
     }
+    
+    // Make the button focusable and clickable
+    view.isClickable = true
+    view.isFocusable = true
   }
   
   private fun dpToPx(dp: Float, context: android.content.Context): Float {
-    return TypedValue.applyDimension(
-      TypedValue.COMPLEX_UNIT_DIP,
+    return android.util.TypedValue.applyDimension(
+      android.util.TypedValue.COMPLEX_UNIT_DIP,
       dp,
       context.resources.displayMetrics
     )

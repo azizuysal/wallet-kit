@@ -42,9 +42,15 @@ const platformStyleMap = {
   },
 };
 
+// Props for the native component with numeric style
+interface NativeWalletButtonProps
+  extends Omit<WalletButtonProps, 'addPassButtonStyle'> {
+  addPassButtonStyle?: number;
+}
+
 // Get the native component
 const NativeWalletButton =
-  requireNativeComponent<WalletButtonProps>('WalletButton');
+  requireNativeComponent<NativeWalletButtonProps>('WalletButton');
 
 /**
  * Native wallet button component for adding passes to Apple Wallet or Google Wallet
