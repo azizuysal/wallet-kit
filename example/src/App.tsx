@@ -18,9 +18,16 @@ import {
 } from 'react-native';
 import RNFS from 'react-native-fs';
 
-// Sample JWT for Android testing (this would normally come from your server)
-const SAMPLE_JWT =
-  'eyJ0eXBlIjoiZ29vZ2xlUGF5IiwidmVyc2lvbiI6MSwiY2xhc3NJZCI6IjEyMzQifQ.eyJpZCI6InNhbXBsZS1wYXNzIiwibmFtZSI6IlNhbXBsZSBQYXNzIn0.c2lnbmF0dXJl';
+const PASS_FILES = {
+  ios: {
+    single: 'Sample.pkpass',
+    multiple: ['Coupon.pkpass', 'Generic.pkpass', 'StoreCard.pkpass'],
+  },
+  android: {
+    single: 'demo.jwt',
+    multiple: ['demo.jwt', 'demo.jwt', 'demo.jwt'],
+  },
+};
 
 const App = () => {
   const [canAddPasses, setCanAddPasses] = React.useState(false);
@@ -51,21 +58,30 @@ const App = () => {
 
   const loadPassData = async (filename: string): Promise<string> => {
     if (Platform.OS === 'ios') {
-      // Load PKPass file for iOS
       return await RNFS.readFile(
         RNFS.MainBundlePath + '/' + filename,
         'base64'
       );
     } else {
-      // For Android, return JWT (in production, this would come from your server)
-      // You can customize this based on the filename to return different JWTs
-      return SAMPLE_JWT;
+      try {
+        const jwt = await RNFS.readFileAssets(`samples/${filename}`);
+        return jwt.trim();
+      } catch (error) {
+        console.error(`Failed to load ${filename}:`, error);
+        throw new Error(
+          `JWT file not found: ${filename}. Please create it in android/app/src/main/assets/samples/`
+        );
+      }
     }
   };
 
   const addSinglePass = async () => {
     try {
-      const passData = await loadPassData('Sample.pkpass');
+      const passFile =
+        Platform.OS === 'ios'
+          ? PASS_FILES.ios.single
+          : PASS_FILES.android.single;
+      const passData = await loadPassData(passFile);
       console.log('Pass type detected:', detectPassType(passData));
       await WalletKit.addPass(passData);
     } catch (error: any) {
@@ -75,13 +91,13 @@ const App = () => {
 
   const addMultiplePasses = async () => {
     try {
-      const passNames =
+      const passFiles =
         Platform.OS === 'ios'
-          ? ['Coupon.pkpass', 'Generic.pkpass', 'StoreCard.pkpass']
-          : ['pass1', 'pass2', 'pass3']; // Dummy names for Android
+          ? PASS_FILES.ios.multiple
+          : PASS_FILES.android.multiple;
 
       const passes = await Promise.all(
-        passNames.map((name) => loadPassData(name))
+        passFiles.map((filename) => loadPassData(filename))
       );
 
       await WalletKit.addPasses(passes);
