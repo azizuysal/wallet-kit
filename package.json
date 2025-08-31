@@ -108,7 +108,7 @@
     "react": "18.3.1",
     "react-native": "0.76.5",
     "react-native-builder-bob": "^0.35.2",
-    "react-test-renderer": "18.3.1",
+    "react-test-renderer": "19.1.1",
     "release-it": "^17.10.0",
     "turbo": "^1.10.7",
     "typedoc": "^0.28.11",
