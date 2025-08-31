@@ -13,3 +13,39 @@ reason = "webpack is only used during build time"
 [[IgnoredVulns]]
 id = "GHSA-4vvj-4cpr-p986"
 reason = "webpack is only used during build time"
+
+[[IgnoredVulns]]
+id = "GHSA-968p-4wvh-cqc8"
+reason = "@babel/helpers and @babel/runtime are transitive deps used only during build time"
+
+[[IgnoredVulns]]
+id = "GHSA-x4c5-c7rf-jjgv"
+reason = "@octokit/endpoint is a transitive dep of release-it, only used during release process"
+
+[[IgnoredVulns]]
+id = "GHSA-h5c3-5r3r-rr8q"
+reason = "@octokit/plugin-paginate-rest is a transitive dep of release-it, only used during release process"
+
+[[IgnoredVulns]]
+id = "GHSA-rmvr-2pp2-xj38"
+reason = "@octokit/request is a transitive dep of release-it, only used during release process"
+
+[[IgnoredVulns]]
+id = "GHSA-xx4v-prfh-6cgc"
+reason = "@octokit/request-error is a transitive dep of release-it, only used during release process"
+
+[[IgnoredVulns]]
+id = "GHSA-v6h2-p8h4-qcjw"
+reason = "brace-expansion is a transitive dep used only during build time"
+
+[[IgnoredVulns]]
+id = "GHSA-m5qc-5hw7-8vg7"
+reason = "image-size is a transitive dep of React Native Metro bundler, only used during build time"
+
+[[IgnoredVulns]]
+id = "GHSA-76c9-3jph-rj3q"
+reason = "on-headers is a transitive dep of Metro dev server, only used during development"
+
+[[IgnoredVulns]]
+id = "GHSA-52f5-9888-hmc6"
+reason = "tmp is a transitive dep used only during build/test time"
