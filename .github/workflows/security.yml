@@ -127,8 +127,10 @@ jobs:
           echo "✅ All production dependencies have compatible licenses"
 
   osv-scanner:
-    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.2.2
-    permissions:
-      contents: read
-      security-events: write
-      actions: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run OSV Scanner
+        uses: google/osv-scanner-action@v2.2.2
