@@ -43,7 +43,7 @@ __metadata:
     "@evilmartians/lefthook": ^1.5.0
     "@react-native-community/cli": 15.0.1
     "@react-native/eslint-config": ^0.73.1
-    "@release-it/conventional-changelog": ^9.0.2
+    "@release-it/conventional-changelog": ^10.0.1
     "@testing-library/react-native": ^13.3.3
     "@types/jest": ^29.5.5
     "@types/react": ^18.2.44
@@ -2999,9 +2999,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@release-it/conventional-changelog@npm:^9.0.2":
-  version: 9.0.3
-  resolution: "@release-it/conventional-changelog@npm:9.0.3"
+"@release-it/conventional-changelog@npm:^10.0.1":
+  version: 10.0.1
+  resolution: "@release-it/conventional-changelog@npm:10.0.1"
   dependencies:
     concat-stream: ^2.0.0
     conventional-changelog: ^6.0.0
@@ -3009,8 +3009,8 @@ __metadata:
     git-semver-tags: ^8.0.0
     semver: ^7.6.3
   peerDependencies:
-    release-it: ^17.0.0
-  checksum: 719df7cf906372070c0a927d8da5145f9b99f43da06699a4dd0a43867359959ea79fb0fac5e706bbcb6d42782d74bdc1f958eb3e6142cbf583a2c7efa3e20a18
+    release-it: ^18.0.0 || ^19.0.0
+  checksum: 9b8a90b3ceaee172cdfb0de248af62182d78966fe43b7d965566513423b5e96e1f1a95849e3a5b2cfc6d06d19ffc64b580aabdfbbbe50e8e491593cd03033016
   languageName: node
   linkType: hard
 
