@@ -99,7 +99,7 @@
     "@types/react-test-renderer": "^19.1.0",
     "commitlint": "^17.0.2",
     "conventional-changelog-cli": "^5.0.0",
-    "del-cli": "^5.1.0",
+    "del-cli": "^6.0.0",
     "eslint": "^8.51.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.1",
