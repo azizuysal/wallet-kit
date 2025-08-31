@@ -1,0 +1,15 @@
+[[IgnoredVulns]]
+id = "GHSA-3h5v-q93c-6h6q"
+reason = "webpack-dev-middleware is only used in development environment"
+
+[[IgnoredVulns]]
+id = "GHSA-7fh5-64p2-3v2j"
+reason = "postcss is only used during build time"
+
+[[IgnoredVulns]]
+id = "GHSA-rv95-896h-c2vc"
+reason = "webpack is only used during build time"
+
+[[IgnoredVulns]]
+id = "GHSA-4vvj-4cpr-p986"
+reason = "webpack is only used during build time"

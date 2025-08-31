@@ -19,7 +19,7 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Run tests with coverage
-        run: yarn test --coverage --coverageReporters=json --coverageReporters=lcov
+        run: yarn test --coverage --coverageReporters=json-summary --coverageReporters=lcov --coverageReporters=text
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
