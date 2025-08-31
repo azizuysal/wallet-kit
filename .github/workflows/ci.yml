@@ -92,7 +92,7 @@ jobs:
 
       - name: Install JDK
         if: steps.turbo-cache-android.outputs.cache_hit != 'true'
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v5
         with:
           distribution: 'zulu'
           java-version: '17'
