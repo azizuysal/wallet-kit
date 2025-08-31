@@ -14,16 +14,16 @@
     "react-native": "0.76.5"
   },
   "devDependencies": {
-    "@babel/core": "^7.25.2",
-    "@babel/preset-env": "^7.25.3",
-    "@babel/runtime": "^7.25.0",
+    "@babel/core": "^7.28.3",
+    "@babel/preset-env": "^7.28.3",
+    "@babel/runtime": "^7.28.3",
     "@react-native-community/cli": "15.0.1",
     "@react-native-community/cli-platform-android": "15.0.1",
     "@react-native-community/cli-platform-ios": "15.0.1",
-    "@react-native/babel-preset": "0.76.5",
-    "@react-native/metro-config": "0.76.5",
-    "@react-native/typescript-config": "0.76.5",
-    "react-native-builder-bob": "^0.35.2",
+    "@react-native/babel-preset": "0.81.1",
+    "@react-native/metro-config": "0.81.1",
+    "@react-native/typescript-config": "0.81.1",
+    "react-native-builder-bob": "^0.40.13",
     "react-native-fs": "^2.20.0"
   },
   "engines": {
