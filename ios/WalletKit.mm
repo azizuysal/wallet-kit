@@ -16,17 +16,14 @@ RCT_EXPORT_MODULE()
 
 RCT_EXPORT_METHOD(canAddPasses:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
     BOOL canAddPasses = [PKAddPassesViewController canAddPasses];
-//    RCTLog(@"Called canAddPasses %d", canAddPasses);
     resolve(@(canAddPasses));
 }
 
 RCT_EXPORT_METHOD(addPass:(NSString *)passData resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
-//    RCTLog(@"Called addPass");
     NSData *data = [[NSData alloc] initWithBase64EncodedString:passData options:0];
     NSError *error;
     PKPass *pass = [[PKPass alloc] initWithData:data error:&error];
     if (error) {
-        // Use standardized error codes
         NSString *errorCode = @"ERR_WALLET_UNKNOWN";
         NSString *errorMessage = @"Failed to create pass from data";
         
@@ -53,7 +50,6 @@ RCT_EXPORT_METHOD(addPass:(NSString *)passData resolve:(RCTPromiseResolveBlock)r
 }
 
 RCT_EXPORT_METHOD(addPasses:(NSArray<NSString *> *)passDataArray resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
-//    RCTLog(@"Called addPasses %lu", (unsigned long)passDataArray.count);
     NSError *error;
     NSMutableArray *passes = [NSMutableArray new];
     for (NSString *passData in passDataArray) {
@@ -65,7 +61,6 @@ RCT_EXPORT_METHOD(addPasses:(NSArray<NSString *> *)passDataArray resolve:(RCTPro
         [passes addObject:pass];
     }
     if (error) {
-        // Use standardized error codes
         NSString *errorCode = @"ERR_WALLET_UNKNOWN";
         NSString *errorMessage = @"Failed to create pass from data";
         
@@ -117,7 +112,6 @@ RCT_EXPORT_METHOD(addPasses:(NSArray<NSString *> *)passDataArray resolve:(RCTPro
               passesAdded = NO;
           }
       }
-//      RCTLog(@"ADDED %d", passesAdded);
       if (strongSelf->hasListeners) {
           [strongSelf sendEventWithName:@"AddPassCompleted" body:@(passesAdded)];
       }

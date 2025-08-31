@@ -136,6 +136,40 @@ const WalletKitModule = WalletKit as WalletInterface;
 export const createWalletEventEmitter = () => new NativeEventEmitter(WalletKit);
 
 /**
+ * Utility function to check if a string is valid base64url and can be decoded
+ * Base64url uses URL and filename safe alphabet: A-Z, a-z, 0-9, -, _
+ *
+ * @param {string} str - The string to validate
+ * @returns {boolean} True if the string is valid base64url and can be decoded
+ */
+const isValidBase64Url = (str: string): boolean => {
+  if (!str || typeof str !== 'string') {
+    return false;
+  }
+
+  if (str.length < 4) {
+    return false;
+  }
+
+  const base64urlRegex = /^[A-Za-z0-9_-]+$/;
+
+  if (!base64urlRegex.test(str)) {
+    return false;
+  }
+
+  try {
+    let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+    while (base64.length % 4) {
+      base64 += '=';
+    }
+    atob(base64);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+/**
  * Utility function to detect pass type based on content
  *
  * @param {string} passData - The pass data to analyze
@@ -144,20 +178,22 @@ export const createWalletEventEmitter = () => new NativeEventEmitter(WalletKit);
 export const detectPassType = (
   passData: string
 ): 'pkpass' | 'jwt' | 'unknown' => {
-  // JWT typically has three base64url segments separated by dots
-  if (passData.includes('.') && passData.split('.').length === 3) {
-    return 'jwt';
+  if (passData.includes('.')) {
+    const segments = passData.split('.');
+    if (
+      segments.length === 3 &&
+      segments.every((segment) => isValidBase64Url(segment))
+    ) {
+      return 'jwt';
+    }
   }
 
-  // PKPass is base64 encoded binary data, usually starts with specific patterns
   try {
     const decoded = atob(passData.substring(0, 100));
     if (decoded.includes('PK')) {
       return 'pkpass';
     }
-  } catch {
-    // Not valid base64
-  }
+  } catch {}
 
   return 'unknown';
 };
