@@ -1,6 +1,6 @@
 {
   "name": "@azizuysal/wallet-kit",
-  "version": "0.2.2",
+  "version": "1.0.0-rc.1",
   "description": "A React Native wrapper for Apple and Google wallet passes",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
@@ -43,12 +43,32 @@
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
     "prepare": "bob build",
-    "release": "release-it"
+    "release": "release-it",
+    "version": "conventional-changelog -p angular -i CHANGELOG.md -s && git add CHANGELOG.md",
+    "docs": "typedoc",
+    "docs:watch": "typedoc --watch",
+    "docs:markdown": "typedoc --plugin typedoc-plugin-markdown --out docs/api-markdown",
+    "generate-jwt": "node scripts/generate-jwt.js"
   },
   "keywords": [
     "react-native",
     "ios",
-    "android"
+    "android",
+    "wallet",
+    "apple-wallet",
+    "google-wallet",
+    "passkit",
+    "pkpass",
+    "passes",
+    "mobile-wallet",
+    "digital-wallet",
+    "wallet-pass",
+    "react-native-wallet",
+    "add-to-wallet",
+    "payment",
+    "tickets",
+    "boarding-pass",
+    "loyalty-card"
   ],
   "repository": {
     "type": "git",
@@ -60,6 +80,10 @@
     "url": "https://github.com/azizuysal/wallet-kit/issues"
   },
   "homepage": "https://github.com/azizuysal/wallet-kit#readme",
+  "security": {
+    "email": "security@azizuysal.com",
+    "url": "https://github.com/azizuysal/wallet-kit/blob/main/SECURITY.md"
+  },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
@@ -74,6 +98,7 @@
     "@types/react": "^18.2.44",
     "@types/react-test-renderer": "^19.1.0",
     "commitlint": "^17.0.2",
+    "conventional-changelog-cli": "^5.0.0",
     "del-cli": "^5.1.0",
     "eslint": "^8.51.0",
     "eslint-config-prettier": "^9.0.0",
@@ -86,6 +111,8 @@
     "react-test-renderer": "18.3.1",
     "release-it": "^17.10.0",
     "turbo": "^1.10.7",
+    "typedoc": "^0.28.11",
+    "typedoc-plugin-markdown": "^4.8.1",
     "typescript": "^5.2.2"
   },
   "resolutions": {
@@ -119,7 +146,34 @@
     "moduleNameMapper": {
       "^react-native$": "<rootDir>/node_modules/react-native"
     },
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "collectCoverageFrom": [
+      "src/**/*.{ts,tsx}",
+      "!src/**/*.d.ts",
+      "!src/**/__tests__/**",
+      "!src/**/*.test.{ts,tsx}",
+      "!src/**/*.spec.{ts,tsx}"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 80,
+        "lines": 85,
+        "statements": 85
+      },
+      "./src/WalletButton.tsx": {
+        "branches": 95,
+        "functions": 100,
+        "lines": 100,
+        "statements": 100
+      },
+      "./src/index.tsx": {
+        "branches": 75,
+        "functions": 80,
+        "lines": 85,
+        "statements": 85
+      }
+    }
   },
   "commitlint": {
     "extends": [
@@ -129,17 +183,21 @@
   "release-it": {
     "git": {
       "commitMessage": "chore: release ${version}",
-      "tagName": "v${version}"
+      "tagName": "v${version}",
+      "requireCleanWorkingDir": true,
+      "requireBranch": "main"
     },
     "npm": {
       "publish": true
     },
     "github": {
-      "release": true
+      "release": true,
+      "releaseName": "v${version}"
     },
     "plugins": {
       "@release-it/conventional-changelog": {
-        "preset": "angular"
+        "preset": "angular",
+        "infile": "CHANGELOG.md"
       }
     }
   },
@@ -165,7 +223,9 @@
   },
   "eslintIgnore": [
     "node_modules/",
-    "lib/"
+    "lib/",
+    "coverage/",
+    "docs/"
   ],
   "prettier": {
     "quoteProps": "consistent",

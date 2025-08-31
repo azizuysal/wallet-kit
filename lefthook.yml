@@ -2,13 +2,27 @@ pre-commit:
   parallel: true
   commands:
     lint:
-      glob: "*.{js,ts,jsx,tsx}"
-      run: npx eslint {staged_files}
-    types:
-      glob: "*.{js,ts, jsx, tsx}"
-      run: npx tsc
-commit-msg:
+      glob: '*.{js,ts,jsx,tsx}'
+      run: yarn eslint {staged_files}
+    typecheck:
+      glob: '*.{ts,tsx}'
+      run: yarn typecheck
+    prettier:
+      glob: '*.{js,jsx,ts,tsx,json,md,yml,yaml}'
+      run: yarn prettier --check {staged_files}
+    test:
+      glob: '*.{ts,tsx}'
+      run: yarn test --findRelatedTests {staged_files} --passWithNoTests
+
+pre-push:
   parallel: true
   commands:
+    test-coverage:
+      run: yarn test --coverage --silent
+    build:
+      run: yarn prepare
+
+commit-msg:
+  commands:
     commitlint:
-      run: npx commitlint --edit
+      run: yarn commitlint --edit {1}

@@ -1,0 +1,42 @@
+name: Coverage
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Run tests with coverage
+        run: yarn test --coverage --coverageReporters=json --coverageReporters=lcov
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+          verbose: true
+
+      - name: Generate coverage summary
+        run: |
+          COVERAGE=$(node -p "Math.round(require('./coverage/coverage-summary.json').total.lines.pct)")
+          echo "Coverage: ${COVERAGE}%"
+
+          # Display coverage summary in workflow
+          echo "## Coverage Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Total Coverage:** ${COVERAGE}%" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          cat coverage/lcov-report/index.html | grep -A 5 "fraction" | head -10 >> $GITHUB_STEP_SUMMARY || true

@@ -88,6 +88,9 @@ android/generated
 # Test coverage
 coverage/
 
+# Documentation
+docs/api/
+
 # Example app build artifacts
 example/ios/build/
 example/android/build/

@@ -1,0 +1,51 @@
+name: Size
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  size:
+    runs-on: ubuntu-latest
+    env:
+      CI_JOB_NUMBER: 1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Build package
+        run: yarn prepare
+
+      - name: Get size
+        run: |
+          echo "### Bundle Size Report 📦" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| File | Size | Gzipped |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|------|---------|" >> $GITHUB_STEP_SUMMARY
+
+          # CommonJS bundle
+          CJS_SIZE=$(du -sh lib/commonjs/index.js | cut -f1)
+          CJS_GZIP=$(gzip -c lib/commonjs/index.js | wc -c | numfmt --to=iec)
+          echo "| CommonJS | $CJS_SIZE | $CJS_GZIP |" >> $GITHUB_STEP_SUMMARY
+
+          # ES Module bundle
+          ESM_SIZE=$(du -sh lib/module/index.js | cut -f1)
+          ESM_GZIP=$(gzip -c lib/module/index.js | wc -c | numfmt --to=iec)
+          echo "| ES Module | $ESM_SIZE | $ESM_GZIP |" >> $GITHUB_STEP_SUMMARY
+
+          # Total lib size
+          TOTAL_SIZE=$(du -sh lib | cut -f1)
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Total lib size:** $TOTAL_SIZE" >> $GITHUB_STEP_SUMMARY
+
+      - name: Report Bundle Size
+        uses: andresz1/size-limit-action@v1
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          skip_step: build
+          directory: lib

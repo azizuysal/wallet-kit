@@ -9,6 +9,7 @@ This is a React Native library that provides a wrapper for Apple and Google wall
 ## Development Commands
 
 ### Building and Testing
+
 ```bash
 # Install dependencies (uses Yarn workspaces)
 yarn install
@@ -33,6 +34,7 @@ yarn test src/__tests__/index.test.tsx
 ```
 
 ### Example App Development
+
 ```bash
 # Navigate to example directory
 cd example
@@ -48,6 +50,7 @@ yarn android
 ```
 
 ### Release Process
+
 ```bash
 # Create a new release (handles version bumping, changelog, git tags, and npm publish)
 yarn release
@@ -93,6 +96,7 @@ Platform-specific components use `.ios.ts` and `.android.ts` file extensions for
 ## Testing Approach
 
 Tests are minimal currently. When adding tests:
+
 - Place them in `src/__tests__/`
 - Mock native modules using `jest.mock('react-native', ...)`
 - Test both success and error scenarios
@@ -101,6 +105,7 @@ Tests are minimal currently. When adding tests:
 ## iOS Implementation Details
 
 The iOS implementation uses:
+
 - `PKPass` for pass data handling
 - `PKAddPassesViewController` for the UI flow
 - A UIViewController category (`UIViewController+WalletKit`) to find the top-most view controller
@@ -109,12 +114,14 @@ The iOS implementation uses:
 ## Common Development Tasks
 
 When implementing Android support:
+
 1. Implement methods in `WalletKitModule.kt` following the iOS pattern
 2. Update `WalletButton.android.ts` to render the native button
 3. Add corresponding native view manager in Android
 4. Update tests to cover Android-specific behavior
 
 When adding new functionality:
+
 1. Add TypeScript interface in `src/index.tsx`
 2. Implement in native modules (iOS/Android)
 3. Add proper error handling with descriptive messages

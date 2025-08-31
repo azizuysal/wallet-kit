@@ -35,8 +35,18 @@ jobs:
       - name: Setup
         uses: ./.github/actions/setup
 
-      - name: Run unit tests
-        run: yarn test --maxWorkers=2 --coverage
+      - name: Run unit tests with coverage
+        run: yarn test --maxWorkers=2 --coverage --coverageReporters=json --coverageReporters=lcov --coverageReporters=text --coverageReporters=text-summary
+
+      - name: Upload coverage reports to Codecov
+        if: always()
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+          verbose: true
 
   build-library:
     runs-on: ubuntu-latest
@@ -70,27 +80,30 @@ jobs:
             ${{ runner.os }}-turborepo-android-
 
       - name: Check turborepo cache for Android
+        id: turbo-cache-android
         run: |
           TURBO_CACHE_STATUS=$(node -p "($(yarn turbo run build:android --cache-dir="${{ env.TURBO_CACHE_DIR }}" --dry=json)).tasks.find(t => t.task === 'build:android').cache.status")
 
           if [[ $TURBO_CACHE_STATUS == "HIT" ]]; then
-            echo "turbo_cache_hit=1" >> $GITHUB_ENV
+            echo "cache_hit=true" >> $GITHUB_OUTPUT
+          else
+            echo "cache_hit=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Install JDK
-        if: env.turbo_cache_hit != 1
+        if: steps.turbo-cache-android.outputs.cache_hit != 'true'
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
           java-version: '17'
 
       - name: Finalize Android SDK
-        if: env.turbo_cache_hit != 1
+        if: steps.turbo-cache-android.outputs.cache_hit != 'true'
         run: |
           /bin/bash -c "yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null"
 
       - name: Cache Gradle
-        if: env.turbo_cache_hit != 1
+        if: steps.turbo-cache-android.outputs.cache_hit != 'true'
         uses: actions/cache@v3
         with:
           path: |
@@ -102,7 +115,7 @@ jobs:
 
       - name: Build example for Android
         env:
-          JAVA_OPTS: "-XX:MaxHeapSize=6g"
+          JAVA_OPTS: '-XX:MaxHeapSize=6g'
         run: |
           yarn turbo run build:android --cache-dir="${{ env.TURBO_CACHE_DIR }}"
 
@@ -126,15 +139,18 @@ jobs:
             ${{ runner.os }}-turborepo-ios-
 
       - name: Check turborepo cache for iOS
+        id: turbo-cache-ios
         run: |
           TURBO_CACHE_STATUS=$(node -p "($(yarn turbo run build:ios --cache-dir="${{ env.TURBO_CACHE_DIR }}" --dry=json)).tasks.find(t => t.task === 'build:ios').cache.status")
 
           if [[ $TURBO_CACHE_STATUS == "HIT" ]]; then
-            echo "turbo_cache_hit=1" >> $GITHUB_ENV
+            echo "cache_hit=true" >> $GITHUB_OUTPUT
+          else
+            echo "cache_hit=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Cache cocoapods
-        if: env.turbo_cache_hit != 1
+        if: steps.turbo-cache-ios.outputs.cache_hit != 'true'
         id: cocoapods-cache
         uses: actions/cache@v3
         with:
@@ -145,7 +161,7 @@ jobs:
             ${{ runner.os }}-cocoapods-
 
       - name: Install cocoapods
-        if: env.turbo_cache_hit != 1 && steps.cocoapods-cache.outputs.cache-hit != 'true'
+        if: steps.turbo-cache-ios.outputs.cache_hit != 'true' && steps.cocoapods-cache.outputs.cache-hit != 'true'
         run: |
           cd example/ios
           pod install
