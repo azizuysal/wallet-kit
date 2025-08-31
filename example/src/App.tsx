@@ -5,7 +5,6 @@ import WalletKit, {
   WalletButtonStyle,
   createWalletEventEmitter,
   detectPassType,
-  type AddPassCompletedEvent,
 } from '@azizuysal/wallet-kit';
 import {
   Platform,
@@ -37,7 +36,7 @@ const App = () => {
   React.useEffect(() => {
     const listener = emitter.addListener(
       'AddPassCompleted',
-      (success: AddPassCompletedEvent) => {
+      (success: boolean) => {
         console.log('AddPassCompleted with success: ', success);
       }
     );

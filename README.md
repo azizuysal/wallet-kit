@@ -128,16 +128,13 @@ function MyComponent() {
 ### Listening to Events
 
 ```typescript
-import {
-  createWalletEventEmitter,
-  type AddPassCompletedEvent,
-} from '@azizuysal/wallet-kit';
+import { createWalletEventEmitter } from '@azizuysal/wallet-kit';
 
 const eventEmitter = createWalletEventEmitter();
 
 const subscription = eventEmitter.addListener(
   'AddPassCompleted',
-  (success: AddPassCompletedEvent) => {
+  (success: boolean) => {
     console.log('Pass added successfully:', success);
   }
 );
@@ -188,10 +185,6 @@ Enum for button styles:
 - `primary` - Black button on iOS, dark button on Android
 - `secondary` - Black outline on iOS, light button on Android
 - `outline` - Black outline on iOS, outline button on Android
-
-#### `AddPassCompletedEvent`
-
-Event that returns a boolean value indicating whether the pass was successfully added to the wallet.
 
 ### Error Codes
 

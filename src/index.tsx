@@ -50,16 +50,6 @@ export type WalletErrorCode =
   | 'ERR_WALLET_UNKNOWN';
 
 /**
- * Event payload for the AddPassCompleted event.
- *
- * @remarks
- * The event directly contains a boolean value:
- * - `true` if the pass was successfully added
- * - `false` if the operation failed or was cancelled
- */
-export type AddPassCompletedEvent = boolean;
-
-/**
  * Main interface for WalletKit native module operations.
  *
  * @internal
@@ -156,7 +146,6 @@ const WalletKitModule = WalletKit as WalletInterface;
  * subscription.remove();
  * ```
  *
- * @see {@link AddPassCompletedEvent}
  */
 export const createWalletEventEmitter = () => new NativeEventEmitter(WalletKit);
 
