@@ -2,7 +2,6 @@
   "$schema": "https://typedoc.org/schema.json",
   "entryPoints": ["./src/index.tsx"],
   "out": "./docs/api",
-  "plugin": ["typedoc-plugin-markdown"],
   "readme": "./README.md",
   "name": "@azizuysal/wallet-kit API Documentation",
   "includeVersion": true,
