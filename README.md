@@ -1,5 +1,20 @@
 # @azizuysal/wallet-kit
 
+[![npm version](https://img.shields.io/npm/v/@azizuysal/wallet-kit.svg)](https://www.npmjs.com/package/@azizuysal/wallet-kit)
+[![npm downloads](https://img.shields.io/npm/dm/@azizuysal/wallet-kit.svg)](https://www.npmjs.com/package/@azizuysal/wallet-kit)
+[![npm bundle size](https://img.shields.io/bundlephobia/min/@azizuysal/wallet-kit)](https://bundlephobia.com/package/@azizuysal/wallet-kit)
+[![Platform - iOS](https://img.shields.io/badge/platform-iOS-lightgrey.svg)](https://developer.apple.com/ios/)
+[![Platform - Android](https://img.shields.io/badge/platform-Android-brightgreen.svg)](https://developer.android.com/)
+[![React Native](https://img.shields.io/badge/React%20Native-0.73+-blue.svg)](https://reactnative.dev/)
+[![License](https://img.shields.io/github/license/azizuysal/wallet-kit)](https://github.com/azizuysal/wallet-kit/blob/main/LICENSE)
+[![CI](https://github.com/azizuysal/wallet-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/azizuysal/wallet-kit/actions/workflows/ci.yml)
+[![Security](https://github.com/azizuysal/wallet-kit/actions/workflows/security.yml/badge.svg)](https://github.com/azizuysal/wallet-kit/actions/workflows/security.yml)
+[![codecov](https://codecov.io/gh/azizuysal/wallet-kit/graph/badge.svg?branch=main)](https://codecov.io/gh/azizuysal/wallet-kit)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=azizuysal_wallet-kit&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=azizuysal_wallet-kit)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=azizuysal_wallet-kit&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=azizuysal_wallet-kit)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Ready-3178C6.svg?logo=typescript)](https://www.typescriptlang.org/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/azizuysal/wallet-kit/blob/main/CONTRIBUTING.md)
+
 A React Native library for integrating with Apple Wallet (iOS) and Google Wallet (Android), providing a unified API for adding passes to mobile wallets.
 
 ## Features
@@ -10,6 +25,12 @@ A React Native library for integrating with Apple Wallet (iOS) and Google Wallet
 - ✅ **Event handling** - Listen for pass addition completion events
 - ✅ **Multiple passes** - Support for adding single or multiple passes at once
 - ✅ **Error handling** - Detailed error codes for different failure scenarios
+
+## Documentation
+
+- 📖 [API Reference](https://azizuysal.github.io/wallet-kit/) - Complete API documentation
+- 📚 [Usage Examples](#usage) - Code examples and patterns
+- 🔧 [Troubleshooting](#troubleshooting) - Common issues and solutions
 
 ## Installation
 
@@ -37,8 +58,8 @@ yarn add @azizuysal/wallet-kit
 ```xml
 <application>
   <!-- Other configurations -->
-  <meta-data 
-    android:name="com.google.android.gms.wallet.api.enabled" 
+  <meta-data
+    android:name="com.google.android.gms.wallet.api.enabled"
     android:value="true" />
 </application>
 ```
@@ -48,10 +69,10 @@ yarn add @azizuysal/wallet-kit
 ### Basic Example
 
 ```typescript
-import WalletKit, { 
-  WalletButton, 
+import WalletKit, {
+  WalletButton,
   WalletButtonStyle,
-  createWalletEventEmitter 
+  createWalletEventEmitter,
 } from '@azizuysal/wallet-kit';
 
 // Check if device can add passes
@@ -107,7 +128,10 @@ function MyComponent() {
 ### Listening to Events
 
 ```typescript
-import { createWalletEventEmitter, type AddPassCompletedEvent } from '@azizuysal/wallet-kit';
+import {
+  createWalletEventEmitter,
+  type AddPassCompletedEvent,
+} from '@azizuysal/wallet-kit';
 
 const eventEmitter = createWalletEventEmitter();
 
@@ -127,14 +151,18 @@ subscription.remove();
 ### Methods
 
 #### `canAddPasses(): Promise<boolean>`
+
 Check if the device can add passes to the wallet.
 
 #### `addPass(passData: string): Promise<void>`
+
 Add a single pass to the wallet.
+
 - **iOS**: `passData` should be a base64-encoded .pkpass file
 - **Android**: `passData` should be a JWT token string
 
 #### `addPasses(passDataArray: string[]): Promise<void>`
+
 Add multiple passes to the wallet.
 
 **Note:** On Android, the Google Wallet API currently only supports adding one JWT at a time. When multiple JWTs are provided, only the first one will be added. For true multi-pass support on Android, you need to combine multiple passes into a single JWT on your server side.
@@ -142,9 +170,11 @@ Add multiple passes to the wallet.
 ### Components
 
 #### `<WalletButton />`
+
 Native wallet button component.
 
 **Props:**
+
 - `addPassButtonStyle?: WalletButtonStyle` - Button style (primary, secondary, outline)
 - `onPress?: () => void` - Button press handler
 - Standard React Native `ViewProps`
@@ -152,28 +182,35 @@ Native wallet button component.
 ### Types
 
 #### `WalletButtonStyle`
+
 Enum for button styles:
+
 - `primary` - Black button on iOS, dark button on Android
-- `secondary` - Black outline on iOS, light button on Android  
+- `secondary` - Black outline on iOS, light button on Android
 - `outline` - Black outline on iOS, outline button on Android
 
 #### `AddPassCompletedEvent`
+
 Event that returns a boolean value indicating whether the pass was successfully added to the wallet.
 
 ### Error Codes
 
 #### Pass Validation Errors
+
 - `INVALID_PASS` - Invalid pass data format
 - `UNSUPPORTED_VERSION` - Pass version not supported (iOS)
 
 #### User Actions
+
 - `ERR_WALLET_CANCELLED` - User cancelled the operation
 
 #### System Availability
+
 - `ERR_WALLET_NOT_AVAILABLE` - Wallet app not available on device
 - `ERR_WALLET_ACTIVITY_NULL` - Android specific: Activity is null
 
 #### Generic Errors
+
 - `ERR_WALLET_UNKNOWN` - Unknown error occurred
 
 ## Platform Differences
@@ -181,11 +218,13 @@ Event that returns a boolean value indicating whether the pass was successfully 
 ### Pass Data Format
 
 **iOS** requires base64-encoded .pkpass files:
+
 ```typescript
 const passData = await RNFS.readFile('path/to/pass.pkpass', 'base64');
 ```
 
 **Android** requires JWT tokens:
+
 ```typescript
 const passData = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...';
 ```
@@ -193,6 +232,7 @@ const passData = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...';
 ### Button Appearance
 
 The native buttons follow platform-specific design guidelines:
+
 - **iOS**: Uses Apple's PKAddPassButton
 - **Android**: Custom button following Material Design
 
@@ -201,6 +241,7 @@ The native buttons follow platform-specific design guidelines:
 ### iOS Issues
 
 1. **"The package doesn't seem to be linked"**
+
    - Run `cd ios && pod install`
    - Rebuild the app
 
@@ -211,6 +252,7 @@ The native buttons follow platform-specific design guidelines:
 ### Android Issues
 
 1. **"Google Wallet is not available"**
+
    - Ensure Google Play Services is up to date
    - Check that the device has Google Wallet installed
    - Verify the meta-data is added to AndroidManifest.xml
@@ -231,6 +273,7 @@ Android requires properly signed JWT tokens for Google Wallet. Follow these step
 #### Prerequisites
 
 1. **Emulator or Device Requirements**:
+
    - Use an emulator with **Google Play** (not Google APIs only)
    - Or use a physical Android device
    - Sign in with a Google account on the device
@@ -263,6 +306,7 @@ Google Wallet requires properly signed JWTs, even for testing. Create a free dem
 ##### Step 3: Generate a Test JWT
 
 **Option A: Use Pass Builder (Easiest)**
+
 1. Go to [Generic Pass Builder](https://developers.google.com/wallet/generic/resources/pass-builder)
 2. Fill in your Issuer ID (found in console)
 3. Customize the pass appearance
@@ -270,6 +314,7 @@ Google Wallet requires properly signed JWTs, even for testing. Create a free dem
 5. Use the JSON to create a JWT (see Option B for JWT creation)
 
 **Option B: Use Google's Codelab Tools**
+
 1. Visit the [Web Codelab](https://codelabs.developers.google.com/add-to-wallet-web)
 2. Follow steps to create a service account
 3. Use the provided code to generate JWTs programmatically
@@ -288,27 +333,31 @@ The app will automatically load this JWT when you press the "Add to Google Walle
 #### Common Issues and Solutions
 
 **"ERR_WALLET_CANCELLED" Error**
+
 - **Cause**: Usually means invalid/expired JWT
 - **Solution**: Generate a fresh JWT using steps above
 
 **"ERR_WALLET_NOT_AVAILABLE" Error**
+
 - **Cause**: Google Play Services not available
-- **Solution**: 
+- **Solution**:
   - Use emulator with Google Play (not Google APIs)
   - Ensure signed in to Google account
   - Check internet connection
 
 **Emulator "No Internet" Issue**
+
 - **Solution**: Cold boot the emulator from AVD Manager
 
 #### Important Notes
 
-- **Demo Mode Limitations**: 
+- **Demo Mode Limitations**:
+
   - Passes show "[TEST ONLY]" watermark
   - Only your test users can add passes
   - Perfect for development and testing
 
-- **Production Access**: 
+- **Production Access**:
   - When ready for production, request publishing access in the console
   - Remove "[TEST ONLY]" watermark
   - Allow any user to add passes
@@ -324,9 +373,17 @@ cd ios && pod install && cd ..
 yarn ios # or yarn android
 ```
 
+## Security
+
+Found a security vulnerability? Please refer to our [security policy](SECURITY.md) for reporting procedures.
+
 ## Contributing
 
 See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.
+
+## Release Process
+
+This package uses automated releases via GitHub Actions. See [RELEASING.md](RELEASING.md) for details on the release process.
 
 ## License
 

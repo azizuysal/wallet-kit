@@ -19,31 +19,50 @@ const WalletKit = NativeModules.WalletKit
     );
 
 /**
- * Error codes that can be returned by the wallet operations
+ * Error codes that can be returned by wallet operations.
+ *
+ * @remarks
+ * These error codes help identify specific failure scenarios:
+ * - `INVALID_PASS` - The pass data format is invalid
+ * - `UNSUPPORTED_VERSION` - The pass version is not supported
+ * - `ERR_WALLET_CANCELLED` - User cancelled the add pass operation
+ * - `ERR_WALLET_NOT_AVAILABLE` - Wallet app is not available on the device
+ * - `ERR_WALLET_ACTIVITY_NULL` - Android specific: Activity context is null
+ * - `ERR_WALLET_UNKNOWN` - An unknown error occurred
+ *
+ * @example
+ * ```typescript
+ * try {
+ *   await WalletKit.addPass(passData);
+ * } catch (error) {
+ *   if (error.code === 'ERR_WALLET_CANCELLED') {
+ *     console.log('User cancelled');
+ *   }
+ * }
+ * ```
  */
 export type WalletErrorCode =
-  // Pass validation errors
-  | 'INVALID_PASS' // Invalid pass data format
-  | 'UNSUPPORTED_VERSION' // Pass version not supported
-
-  // User actions
-  | 'ERR_WALLET_CANCELLED' // User cancelled the operation
-
-  // System availability
-  | 'ERR_WALLET_NOT_AVAILABLE' // Wallet app not available on device
-  | 'ERR_WALLET_ACTIVITY_NULL' // Android: Activity is null
-
-  // Generic errors
-  | 'ERR_WALLET_UNKNOWN'; // Unknown error occurred
+  | 'INVALID_PASS'
+  | 'UNSUPPORTED_VERSION'
+  | 'ERR_WALLET_CANCELLED'
+  | 'ERR_WALLET_NOT_AVAILABLE'
+  | 'ERR_WALLET_ACTIVITY_NULL'
+  | 'ERR_WALLET_UNKNOWN';
 
 /**
- * Event payload for the AddPassCompleted event
- * The event directly contains a boolean value indicating success
+ * Event payload for the AddPassCompleted event.
+ *
+ * @remarks
+ * The event directly contains a boolean value:
+ * - `true` if the pass was successfully added
+ * - `false` if the operation failed or was cancelled
  */
 export type AddPassCompletedEvent = boolean;
 
 /**
- * Main interface for WalletKit operations
+ * Main interface for WalletKit native module operations.
+ *
+ * @internal
  */
 interface WalletInterface {
   /**
@@ -115,32 +134,39 @@ interface WalletInterface {
 }
 
 /**
- * The main WalletKit module for interacting with Apple Wallet (iOS) and Google Wallet (Android)
+ * The main WalletKit module for interacting with Apple Wallet (iOS) and Google Wallet (Android).
+ *
+ * @internal
  */
 const WalletKitModule = WalletKit as WalletInterface;
 
 /**
- * Create an event emitter for listening to wallet events
+ * Creates an event emitter for listening to wallet events.
+ *
+ * @returns {NativeEventEmitter} An event emitter for wallet events
  *
  * @example
  * ```typescript
- * const eventEmitter = new NativeEventEmitter(WalletKit);
- * const subscription = eventEmitter.addListener('AddPassCompleted', (event: AddPassCompletedEvent) => {
- *   console.log('Pass added:', event.success);
+ * const eventEmitter = createWalletEventEmitter();
+ * const subscription = eventEmitter.addListener('AddPassCompleted', (success: boolean) => {
+ *   console.log('Pass added:', success);
  * });
  *
  * // Don't forget to remove the listener when done
  * subscription.remove();
  * ```
+ *
+ * @see {@link AddPassCompletedEvent}
  */
 export const createWalletEventEmitter = () => new NativeEventEmitter(WalletKit);
 
 /**
- * Utility function to check if a string is valid base64url and can be decoded
+ * Utility function to check if a string is valid base64url and can be decoded.
  * Base64url uses URL and filename safe alphabet: A-Z, a-z, 0-9, -, _
  *
- * @param {string} str - The string to validate
- * @returns {boolean} True if the string is valid base64url and can be decoded
+ * @internal
+ * @param str - The string to validate
+ * @returns True if the string is valid base64url and can be decoded
  */
 const isValidBase64Url = (str: string): boolean => {
   if (!str || typeof str !== 'string') {
@@ -170,10 +196,23 @@ const isValidBase64Url = (str: string): boolean => {
 };
 
 /**
- * Utility function to detect pass type based on content
+ * Detects the type of pass data based on its format.
  *
- * @param {string} passData - The pass data to analyze
- * @returns {'pkpass' | 'jwt' | 'unknown'} The detected pass type
+ * @param passData - The pass data string to analyze
+ * @returns The detected pass type:
+ * - `'pkpass'` for Apple Wallet passes (base64-encoded .pkpass files)
+ * - `'jwt'` for Google Wallet passes (JWT tokens)
+ * - `'unknown'` if the format cannot be determined
+ *
+ * @example
+ * ```typescript
+ * const passType = detectPassType(passData);
+ * if (passType === 'jwt') {
+ *   console.log('This is a Google Wallet pass');
+ * } else if (passType === 'pkpass') {
+ *   console.log('This is an Apple Wallet pass');
+ * }
+ * ```
  */
 export const detectPassType = (
   passData: string

@@ -1,0 +1,123 @@
+name: Pre-release (RC/Beta/Alpha)
+
+on:
+  workflow_dispatch:
+    inputs:
+      type:
+        description: 'Pre-release type'
+        required: true
+        type: choice
+        options:
+          - rc
+          - beta
+          - alpha
+      increment:
+        description: 'Version increment'
+        required: true
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+
+jobs:
+  pre-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Run tests
+        run: yarn test --coverage
+
+      - name: Build package
+        run: yarn prepare
+
+      - name: Determine version
+        id: version
+        run: |
+          # Get current version
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+
+          # Remove any existing pre-release suffix
+          BASE_VERSION=${CURRENT_VERSION%%-*}
+
+          # Increment version based on input
+          if [ "${{ inputs.increment }}" == "major" ]; then
+            NEW_VERSION=$(npm version major --no-git-tag-version | sed 's/^v//')
+          elif [ "${{ inputs.increment }}" == "minor" ]; then
+            NEW_VERSION=$(npm version minor --no-git-tag-version | sed 's/^v//')
+          else
+            NEW_VERSION=$(npm version patch --no-git-tag-version | sed 's/^v//')
+          fi
+
+          # Add pre-release suffix
+          PRE_VERSION="${NEW_VERSION}-${{ inputs.type }}.1"
+
+          # Check if this pre-release already exists
+          if git tag --list | grep -q "v${PRE_VERSION}"; then
+            # Increment pre-release number
+            LAST_PRE=$(git tag --list "v${NEW_VERSION}-${{ inputs.type }}.*" | sort -V | tail -1 | sed 's/^v//')
+            if [ -n "$LAST_PRE" ]; then
+              PRE_NUM=$(echo $LAST_PRE | sed 's/.*\.//')
+              PRE_NUM=$((PRE_NUM + 1))
+              PRE_VERSION="${NEW_VERSION}-${{ inputs.type }}.${PRE_NUM}"
+            fi
+          fi
+
+          echo "version=${PRE_VERSION}" >> $GITHUB_OUTPUT
+          echo "📦 Will create pre-release version: ${PRE_VERSION}"
+
+      - name: Update version and changelog
+        run: |
+          npm version ${{ steps.version.outputs.version }} --no-git-tag-version
+          npx conventional-changelog -p angular -i CHANGELOG.md -s --release-count 0
+          git add package.json CHANGELOG.md
+          git commit -m "chore: pre-release ${{ steps.version.outputs.version }}"
+
+      - name: Create and push tag
+        run: |
+          git tag -a "v${{ steps.version.outputs.version }}" -m "Pre-release v${{ steps.version.outputs.version }}"
+          git push origin main
+          git push origin "v${{ steps.version.outputs.version }}"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: v${{ steps.version.outputs.version }} (${{ inputs.type }})
+          generate_release_notes: true
+          draft: false
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node for NPM
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Publish to NPM
+        run: |
+          npm publish --access public --tag ${{ inputs.type }}
+          echo "✅ Published pre-release version ${{ steps.version.outputs.version }} to NPM with tag '${{ inputs.type }}'"
+          echo "📦 View on NPM: https://www.npmjs.com/package/@azizuysal/wallet-kit"
+          echo ""
+          echo "📥 Install with: npm install @azizuysal/wallet-kit@${{ inputs.type }}"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

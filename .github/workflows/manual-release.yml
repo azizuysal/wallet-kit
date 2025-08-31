@@ -1,0 +1,104 @@
+name: Manual Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 1.0.0, 1.0.0-rc.1)'
+        required: true
+        type: string
+      npm-tag:
+        description: 'NPM tag (latest, next, beta)'
+        required: true
+        default: 'latest'
+        type: choice
+        options:
+          - latest
+          - next
+          - beta
+          - alpha
+      dry-run:
+        description: 'Dry run (skip actual publishing)'
+        required: true
+        default: true
+        type: boolean
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Run tests
+        run: yarn test --coverage
+
+      - name: Build package
+        run: yarn prepare
+
+      - name: Update version and changelog
+        if: ${{ !inputs.dry-run }}
+        run: |
+          npm version ${{ inputs.version }} --no-git-tag-version
+          npx conventional-changelog -p angular -i CHANGELOG.md -s
+          git add package.json CHANGELOG.md
+          git commit -m "chore: release ${{ inputs.version }}"
+
+      - name: Create and push tag
+        if: ${{ !inputs.dry-run }}
+        run: |
+          git tag -a "v${{ inputs.version }}" -m "Release v${{ inputs.version }}"
+          git push origin main
+          git push origin "v${{ inputs.version }}"
+
+      - name: Create GitHub Release
+        if: ${{ !inputs.dry-run }}
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ inputs.version }}
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(inputs.version, '-rc') || contains(inputs.version, '-beta') || contains(inputs.version, '-alpha') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node for NPM
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Dry Run - Show what would be published
+        if: ${{ inputs.dry-run }}
+        run: |
+          echo "🔍 Dry Run Mode - No actual publishing will occur"
+          echo "📦 Would publish version: ${{ inputs.version }}"
+          echo "🏷️ Would use NPM tag: ${{ inputs.npm-tag }}"
+          echo ""
+          echo "Files that would be included:"
+          npm pack --dry-run
+          echo ""
+          echo "To actually publish, run this workflow again with 'Dry run' set to false"
+
+      - name: Publish to NPM
+        if: ${{ !inputs.dry-run }}
+        run: |
+          npm publish --access public --tag ${{ inputs.npm-tag }}
+          echo "✅ Published version ${{ inputs.version }} to NPM with tag '${{ inputs.npm-tag }}'"
+          echo "📦 View on NPM: https://www.npmjs.com/package/@azizuysal/wallet-kit"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
