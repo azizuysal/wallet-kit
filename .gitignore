@@ -39,6 +39,8 @@ project.xcworkspace
 .settings
 local.properties
 android.iml
+*.iml
+android/build/
 
 # Cocoapods
 #
@@ -82,3 +84,41 @@ ios/generated
 android/generated
 
 .xcode.env.local
+
+# Test coverage
+coverage/
+
+# Example app build artifacts
+example/ios/build/
+example/android/build/
+example/android/app/build/
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+pnpm-debug.log*
+
+# Editor directories and files
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+.cache/

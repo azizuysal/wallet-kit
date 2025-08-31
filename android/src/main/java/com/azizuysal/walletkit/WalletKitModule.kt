@@ -84,7 +84,6 @@ class WalletKitModule(reactContext: ReactApplicationContext) :
       .getPayApiAvailabilityStatus(PayClient.RequestType.SAVE_PASSES)
       .addOnSuccessListener { status ->
         if (status == PayApiAvailabilityStatus.AVAILABLE) {
-          // Remove any whitespace and newlines from JWT
           val jwt = passData.trim()
           payClient.savePassesJwt(jwt, activity, ADD_TO_GOOGLE_WALLET_REQUEST_CODE)
         } else {
@@ -118,20 +117,10 @@ class WalletKitModule(reactContext: ReactApplicationContext) :
       .getPayApiAvailabilityStatus(PayClient.RequestType.SAVE_PASSES)
       .addOnSuccessListener { status ->
         if (status == PayApiAvailabilityStatus.AVAILABLE) {
-          // Google Wallet API currently only supports adding one JWT at a time
-          // If we have multiple separate JWTs, we'll use the first one
-          // In production, you should either:
-          // 1. Combine multiple passes into a single JWT on the server side
-          // 2. Show multiple "Add to Wallet" buttons for each pass
-          // 3. Implement a custom flow to add passes sequentially
-          
           if (passDataArray.size() > 0) {
             val firstJwt = passDataArray.getString(0)?.trim()
             if (firstJwt != null) {
-              // Log warning if multiple passes were provided
               if (passDataArray.size() > 1) {
-                // Note: In a production app, you might want to handle this differently
-                // For now, we'll just add the first pass
                 android.util.Log.w(NAME, "Multiple passes provided but only the first will be added. " +
                   "Google Wallet API requires passes to be combined in a single JWT.")
               }
@@ -160,17 +149,14 @@ class WalletKitModule(reactContext: ReactApplicationContext) :
 
     when (resultCode) {
       Activity.RESULT_OK -> {
-        // Pass saved successfully
         promise.resolve(null)
         sendAddPassCompletedEvent(true)
       }
       Activity.RESULT_CANCELED -> {
-        // User cancelled the operation
         promise.reject(ERR_WALLET_CANCELLED, "User cancelled adding pass to wallet")
         sendAddPassCompletedEvent(false)
       }
       else -> {
-        // Unknown error
         promise.reject(ERR_WALLET_UNKNOWN, "Unknown error occurred while adding pass")
         sendAddPassCompletedEvent(false)
       }
@@ -181,7 +167,6 @@ class WalletKitModule(reactContext: ReactApplicationContext) :
 
   private fun sendAddPassCompletedEvent(success: Boolean) {
     if (listenerCount > 0) {
-      // Send event in the same format as iOS (boolean directly)
       sendEvent(reactApplicationContext, "AddPassCompleted", success)
     }
   }

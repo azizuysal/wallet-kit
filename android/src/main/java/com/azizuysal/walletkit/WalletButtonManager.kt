@@ -15,14 +15,11 @@ class WalletButtonManager : SimpleViewManager<RelativeLayout>() {
   }
 
   override fun createViewInstance(reactContext: ThemedReactContext): RelativeLayout {
-    // Inflate the official Google Wallet button layout
     val inflater = LayoutInflater.from(reactContext)
     
-    // Use the R class directly to ensure proper resource resolution including localization
     val button = try {
       inflater.inflate(R.layout.add_to_googlewallet_button, null) as RelativeLayout
     } catch (e: Exception) {
-      // Fallback: Try to find the resource dynamically
       val resourceId = reactContext.resources.getIdentifier(
         "add_to_googlewallet_button",
         "layout",
@@ -32,12 +29,10 @@ class WalletButtonManager : SimpleViewManager<RelativeLayout>() {
       if (resourceId != 0) {
         inflater.inflate(resourceId, null) as RelativeLayout
       } else {
-        // Final fallback to a simple RelativeLayout if resources not found
         RelativeLayout(reactContext)
       }
     }
     
-    // Apply default style
     applyButtonStyle(button, 0)
     
     return button
@@ -49,23 +44,12 @@ class WalletButtonManager : SimpleViewManager<RelativeLayout>() {
   }
   
   private fun applyButtonStyle(button: RelativeLayout, style: Int) {
-    // The Google Wallet button assets handle their own styling
-    // We can adjust the button appearance based on the style parameter if needed
     when (style) {
-      0 -> { // dark (primary) - default style
-        // The default assets are already dark themed
-      }
-      1 -> { // light (secondary)
-        // Could potentially swap to light themed assets if available
-        // For now, keep the default
-      }
-      2 -> { // outline
-        // Could potentially swap to outline style assets if available
-        // For now, keep the default
-      }
+      0 -> {}
+      1 -> {}
+      2 -> {}
     }
     
-    // Ensure the button has the correct layout params
     if (button.layoutParams == null) {
       button.layoutParams = RelativeLayout.LayoutParams(
         RelativeLayout.LayoutParams.MATCH_PARENT,
@@ -92,7 +76,6 @@ class WalletButtonManager : SimpleViewManager<RelativeLayout>() {
         .receiveEvent(view.id, "topPress", null)
     }
     
-    // Make the button focusable and clickable
     view.isClickable = true
     view.isFocusable = true
   }

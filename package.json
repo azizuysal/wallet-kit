@@ -72,6 +72,7 @@
     "@testing-library/react-native": "^13.3.3",
     "@types/jest": "^29.5.5",
     "@types/react": "^18.2.44",
+    "@types/react-test-renderer": "^19.1.0",
     "commitlint": "^17.0.2",
     "del-cli": "^5.1.0",
     "eslint": "^8.51.0",
@@ -100,10 +101,25 @@
   "packageManager": "yarn@3.6.1",
   "jest": {
     "preset": "react-native",
+    "setupFiles": [
+      "<rootDir>/jest.setup.js"
+    ],
     "modulePathIgnorePatterns": [
       "<rootDir>/example/node_modules",
       "<rootDir>/lib/"
-    ]
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/lib/",
+      "\\.d\\.ts$"
+    ],
+    "transformIgnorePatterns": [
+      "node_modules/(?!(react-native|@react-native|@react-navigation)/)"
+    ],
+    "moduleNameMapper": {
+      "^react-native$": "<rootDir>/node_modules/react-native"
+    },
+    "testEnvironment": "node"
   },
   "commitlint": {
     "extends": [

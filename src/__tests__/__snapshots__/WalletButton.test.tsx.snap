@@ -1,0 +1,59 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WalletButton Snapshots should match snapshot with custom props 1`] = `
+<WalletButton
+  accessibilityLabel="Add to Wallet"
+  accessible={true}
+  addPassButtonStyle={0}
+  onPress={[Function]}
+  style={
+    {
+      "height": 48,
+      "width": 200,
+    }
+  }
+  testID="snapshot-test"
+/>
+`;
+
+exports[`WalletButton Snapshots should match snapshot with default props 1`] = `
+<WalletButton
+  addPassButtonStyle={0}
+/>
+`;
+
+exports[`WalletButton Snapshots should match snapshot with outline style on Android 1`] = `
+<WalletButton
+  addPassButtonStyle={2}
+/>
+`;
+
+exports[`WalletButton Snapshots should match snapshot with outline style on iOS 1`] = `
+<WalletButton
+  addPassButtonStyle={1}
+/>
+`;
+
+exports[`WalletButton Snapshots should match snapshot with primary style on Android 1`] = `
+<WalletButton
+  addPassButtonStyle={0}
+/>
+`;
+
+exports[`WalletButton Snapshots should match snapshot with primary style on iOS 1`] = `
+<WalletButton
+  addPassButtonStyle={0}
+/>
+`;
+
+exports[`WalletButton Snapshots should match snapshot with secondary style on Android 1`] = `
+<WalletButton
+  addPassButtonStyle={1}
+/>
+`;
+
+exports[`WalletButton Snapshots should match snapshot with secondary style on iOS 1`] = `
+<WalletButton
+  addPassButtonStyle={1}
+/>
+`;
