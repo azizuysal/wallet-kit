@@ -1,7 +1,7 @@
 # @azizuysal/wallet-kit
 
 [![npm version](https://img.shields.io/npm/v/@azizuysal/wallet-kit.svg)](https://www.npmjs.com/package/@azizuysal/wallet-kit)
-[![npm downloads](https://img.shields.io/npm/dm/@azizuysal/wallet-kit.svg)](https://www.npmjs.com/package/@azizuysal/wallet-kit)
+[![npm downloads](https://img.shields.io/npm/dt/@azizuysal/wallet-kit.svg)](https://www.npmjs.com/package/@azizuysal/wallet-kit)
 [![npm bundle size](https://img.shields.io/bundlephobia/min/@azizuysal/wallet-kit)](https://bundlephobia.com/package/@azizuysal/wallet-kit)
 [![Platform - iOS](https://img.shields.io/badge/platform-iOS-lightgrey.svg)](https://developer.apple.com/ios/)
 [![Platform - Android](https://img.shields.io/badge/platform-Android-brightgreen.svg)](https://developer.android.com/)
