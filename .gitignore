@@ -125,3 +125,6 @@ Thumbs.db
 *.tmp
 *.temp
 .cache/
+
+# JWT files - never commit these
+*.jwt
