@@ -3,7 +3,6 @@ package com.azizuysal.walletkit
 import android.app.Activity
 import android.content.Intent
 import com.facebook.react.bridge.ActivityEventListener
-import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.BaseActivityEventListener
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
@@ -184,7 +183,7 @@ class WalletKitModule(reactContext: ReactApplicationContext) :
   private fun sendEvent(
     reactContext: ReactContext,
     eventName: String,
-    params: WritableMap?
+    params: Any?
   ) {
     reactContext
       .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)

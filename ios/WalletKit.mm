@@ -27,10 +27,10 @@ RCT_EXPORT_METHOD(addPass:(NSString *)passData resolve:(RCTPromiseResolveBlock)r
         NSString *errorCode = @"ERR_WALLET_UNKNOWN";
         NSString *errorMessage = @"Failed to create pass from data";
         
-        if (error.code == PKPassKitErrorInvalidData) {
+        if (error.code == PKInvalidDataError) {
             errorCode = @"INVALID_PASS";
             errorMessage = @"Invalid pass data format";
-        } else if (error.code == PKPassKitErrorUnsupportedVersion) {
+        } else if (error.code == PKUnsupportedVersionError) {
             errorCode = @"UNSUPPORTED_VERSION";
             errorMessage = @"Pass version not supported";
         }
@@ -64,10 +64,10 @@ RCT_EXPORT_METHOD(addPasses:(NSArray<NSString *> *)passDataArray resolve:(RCTPro
         NSString *errorCode = @"ERR_WALLET_UNKNOWN";
         NSString *errorMessage = @"Failed to create pass from data";
         
-        if (error.code == PKPassKitErrorInvalidData) {
+        if (error.code == PKInvalidDataError) {
             errorCode = @"INVALID_PASS";
             errorMessage = @"Invalid pass data format";
-        } else if (error.code == PKPassKitErrorUnsupportedVersion) {
+        } else if (error.code == PKUnsupportedVersionError) {
             errorCode = @"UNSUPPORTED_VERSION";
             errorMessage = @"Pass version not supported";
         }
@@ -100,9 +100,9 @@ RCT_EXPORT_METHOD(addPasses:(NSArray<NSString *> *)passDataArray resolve:(RCTPro
 #pragma mark - PKAddPassesViewControllerDelegate
 
 - (void)addPassesViewControllerDidFinish:(PKAddPassesViewController *)controller {
-  __weak typeof(self) weakSelf = self;
+  __weak WalletKit *weakSelf = self;
   [controller dismissViewControllerAnimated:YES completion:^{
-      __strong typeof(weakSelf) strongSelf = weakSelf;
+      __strong WalletKit *strongSelf = weakSelf;
       if (!strongSelf) return;
 
       BOOL passesAdded = YES;

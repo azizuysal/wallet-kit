@@ -142,7 +142,6 @@ const WalletKitModule = WalletKit as WalletInterface;
  *   console.log('Pass added:', success);
  * });
  *
- * // Don't forget to remove the listener when done
  * subscription.remove();
  * ```
  *

@@ -15,9 +15,12 @@ class WalletButtonManager : SimpleViewManager<RelativeLayout>() {
   }
 
   override fun createViewInstance(reactContext: ThemedReactContext): RelativeLayout {
+    // Create a container that can switch between button styles
+    val container = RelativeLayout(reactContext)
     val inflater = LayoutInflater.from(reactContext)
     
-    val button = try {
+    // Load standard button layout
+    val standardButton = try {
       inflater.inflate(R.layout.add_to_googlewallet_button, null) as RelativeLayout
     } catch (e: Exception) {
       val resourceId = reactContext.resources.getIdentifier(
@@ -33,28 +36,106 @@ class WalletButtonManager : SimpleViewManager<RelativeLayout>() {
       }
     }
     
-    applyButtonStyle(button, 0)
+    // Load badge layout
+    val badgeButton = try {
+      inflater.inflate(R.layout.add_to_googlewallet_badge, null) as RelativeLayout
+    } catch (e: Exception) {
+      val resourceId = reactContext.resources.getIdentifier(
+        "add_to_googlewallet_badge",
+        "layout",
+        reactContext.packageName
+      )
+      
+      if (resourceId != 0) {
+        inflater.inflate(resourceId, null) as RelativeLayout
+      } else {
+        null
+      }
+    }
     
-    return button
+    // Add both to container
+    standardButton.tag = "standard"
+    container.addView(standardButton)
+    
+    if (badgeButton != null) {
+      badgeButton.tag = "badge"
+      badgeButton.visibility = View.GONE
+      container.addView(badgeButton)
+    }
+    
+    container.tag = 0 // Store current style
+    applyButtonStyle(container, 0)
+    
+    return container
   }
 
   @ReactProp(name = "addPassButtonStyle")
   fun setButtonStyle(view: RelativeLayout, style: Int) {
+    view.tag = style
     applyButtonStyle(view, style)
   }
   
-  private fun applyButtonStyle(button: RelativeLayout, style: Int) {
-    when (style) {
-      0 -> {}
-      1 -> {}
-      2 -> {}
-    }
+  private fun applyButtonStyle(container: RelativeLayout, style: Int) {
+    val standardButton = container.findViewWithTag<View>("standard")
+    val badgeButton = container.findViewWithTag<View>("badge")
     
-    if (button.layoutParams == null) {
-      button.layoutParams = RelativeLayout.LayoutParams(
-        RelativeLayout.LayoutParams.MATCH_PARENT,
-        dpToPx(48f, button.context).toInt()
-      )
+    when (style) {
+      0 -> {
+        // Primary: show standard button
+        standardButton?.visibility = View.VISIBLE
+        badgeButton?.visibility = View.GONE
+        
+        if (container.layoutParams == null) {
+          container.layoutParams = RelativeLayout.LayoutParams(
+            RelativeLayout.LayoutParams.MATCH_PARENT,
+            dpToPx(48f, container.context).toInt()
+          )
+        } else {
+          container.layoutParams.height = dpToPx(48f, container.context).toInt()
+        }
+      }
+      1, 2 -> {
+        // Secondary/Outline: show badge style (Google doesn't have outline style)
+        if (badgeButton != null) {
+          standardButton?.visibility = View.GONE
+          badgeButton.visibility = View.VISIBLE
+          
+          if (container.layoutParams == null) {
+            container.layoutParams = RelativeLayout.LayoutParams(
+              RelativeLayout.LayoutParams.MATCH_PARENT,
+              dpToPx(53f, container.context).toInt()
+            )
+          } else {
+            container.layoutParams.height = dpToPx(53f, container.context).toInt()
+          }
+        } else {
+          // Fallback to standard if badge not available
+          standardButton?.visibility = View.VISIBLE
+          
+          if (container.layoutParams == null) {
+            container.layoutParams = RelativeLayout.LayoutParams(
+              RelativeLayout.LayoutParams.MATCH_PARENT,
+              dpToPx(48f, container.context).toInt()
+            )
+          } else {
+            container.layoutParams.height = dpToPx(48f, container.context).toInt()
+          }
+        }
+      }
+      else -> {
+        // Default to standard
+        standardButton?.visibility = View.VISIBLE
+        badgeButton?.visibility = View.GONE
+        
+        if (container.layoutParams == null) {
+          container.layoutParams = RelativeLayout.LayoutParams(
+            RelativeLayout.LayoutParams.MATCH_PARENT,
+            dpToPx(48f, container.context).toInt()
+          )
+        } else {
+          container.layoutParams.height = dpToPx(48f, container.context).toInt()
+        }
+      }
     }
   }
 

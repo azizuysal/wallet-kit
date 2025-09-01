@@ -1512,7 +1512,7 @@ PODS:
   - RNFS (2.20.0):
     - React-Core
   - SocketRocket (0.7.1)
-  - wallet-kit (0.2.2):
+  - wallet-kit (1.0.0-rc.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1806,7 +1806,7 @@ SPEC CHECKSUMS:
   ReactCommon: 5809a8ee421b7219221a475b78180f8f34b5c5ec
   RNFS: 89de7d7f4c0f6bafa05343c578f61118c8282ed8
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
-  wallet-kit: db075484ebb5d55c05335075709329360fa67ea5
+  wallet-kit: 0fe6bc2ab68c7ac5824b6d62bdc1b3c7c28012b4
   Yoga: fcc198acd4a55599b3468cfb6ebc526baff5f06e
 
 PODFILE CHECKSUM: c3050298c740648bf99a1f3a597c419a8e211bc2

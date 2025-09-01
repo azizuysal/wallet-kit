@@ -54,27 +54,24 @@ export interface WalletButtonProps extends ViewProps {
   onPress?: () => void;
 }
 
-// Platform-specific style mapping
 const platformStyleMap = {
   ios: {
-    [WalletButtonStyle.primary]: 0, // black
-    [WalletButtonStyle.secondary]: 1, // blackOutline
-    [WalletButtonStyle.outline]: 1, // blackOutline
+    [WalletButtonStyle.primary]: 0,
+    [WalletButtonStyle.secondary]: 1,
+    [WalletButtonStyle.outline]: 1,
   },
   android: {
-    [WalletButtonStyle.primary]: 0, // dark
-    [WalletButtonStyle.secondary]: 1, // light
-    [WalletButtonStyle.outline]: 2, // outline
+    [WalletButtonStyle.primary]: 0,
+    [WalletButtonStyle.secondary]: 1,
+    [WalletButtonStyle.outline]: 2,
   },
 };
 
-// Props for the native component with numeric style
 interface NativeWalletButtonProps
   extends Omit<WalletButtonProps, 'addPassButtonStyle'> {
   addPassButtonStyle?: number;
 }
 
-// Get the native component
 const NativeWalletButton =
   requireNativeComponent<NativeWalletButtonProps>('WalletButton');
 
@@ -125,7 +122,6 @@ export const WalletButton: React.FC<WalletButtonProps> = ({
   addPassButtonStyle = WalletButtonStyle.primary,
   ...props
 }) => {
-  // Map the cross-platform style to the platform-specific numeric value
   const mappedStyle =
     platformStyleMap[Platform.OS as 'ios' | 'android']?.[addPassButtonStyle] ??
     0;
