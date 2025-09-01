@@ -1,0 +1,36 @@
+{
+  "payload": {
+    "loyaltyObjects": [
+      {
+        "state": "ACTIVE",
+        "accountId": "member-12345",
+        "accountName": "Test User",
+        "barcode": {
+          "type": "QR_CODE",
+          "value": "LOYALTY"
+        },
+        "loyaltyPoints": {
+          "balance": {
+            "int": 500
+          },
+          "label": "Points"
+        }
+      }
+    ],
+    "loyaltyClasses": [
+      {
+        "issuerName": "Wallet Kit Demo",
+        "programName": "Demo Rewards",
+        "programLogo": {
+          "sourceUri": {
+            "uri": "https://storage.googleapis.com/wallet-lab-tools-codelab-artifacts-public/pass_google_logo.jpg"
+          }
+        },
+        "reviewStatus": "UNDER_REVIEW",
+        "hexBackgroundColor": "#4285f4",
+        "accountIdLabel": "Member ID",
+        "accountNameLabel": "Member Name"
+      }
+    ]
+  }
+}

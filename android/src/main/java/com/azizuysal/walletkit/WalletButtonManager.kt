@@ -73,6 +73,9 @@ class WalletButtonManager : SimpleViewManager<RelativeLayout>() {
   fun setButtonStyle(view: RelativeLayout, style: Int) {
     view.tag = style
     applyButtonStyle(view, style)
+    
+    // Ensure click listeners are maintained after style change
+    ensureClickListeners(view)
   }
   
   private fun applyButtonStyle(container: RelativeLayout, style: Int) {
@@ -152,13 +155,39 @@ class WalletButtonManager : SimpleViewManager<RelativeLayout>() {
   }
   
   override fun addEventEmitters(reactContext: ThemedReactContext, view: RelativeLayout) {
-    view.setOnClickListener {
+    val clickListener = View.OnClickListener {
       reactContext.getJSModule(com.facebook.react.uimanager.events.RCTEventEmitter::class.java)
         .receiveEvent(view.id, "topPress", null)
     }
     
+    // Store the listener on the view for reuse
+    view.setTag(R.id.click_listener_tag, clickListener)
+    
+    // Set click listener on container
+    view.setOnClickListener(clickListener)
     view.isClickable = true
     view.isFocusable = true
+    
+    // Also set click listener on child buttons to propagate clicks
+    val standardButton = view.findViewWithTag<View>("standard")
+    val badgeButton = view.findViewWithTag<View>("badge")
+    
+    standardButton?.setOnClickListener(clickListener)
+    badgeButton?.setOnClickListener(clickListener)
+  }
+  
+  private fun ensureClickListeners(view: RelativeLayout) {
+    // Get the stored click listener
+    val clickListener = view.getTag(R.id.click_listener_tag) as? View.OnClickListener
+    
+    if (clickListener != null) {
+      // Reapply to child buttons
+      val standardButton = view.findViewWithTag<View>("standard")
+      val badgeButton = view.findViewWithTag<View>("badge")
+      
+      standardButton?.setOnClickListener(clickListener)
+      badgeButton?.setOnClickListener(clickListener)
+    }
   }
   
   private fun dpToPx(dp: Float, context: android.content.Context): Float {

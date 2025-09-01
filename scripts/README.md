@@ -1,114 +1,83 @@
-# JWT Generator Script
+# Google Wallet JWT Generator
 
-## Overview
+This script generates signed JWTs for adding passes to Google Wallet. It is designed for testing and development purposes and can be used to create generic passes, event tickets, and loyalty cards.
 
-The `generate-jwt.js` script generates JWT tokens for Google Wallet passes. It requires a private key to sign the tokens, which must be provided via environment variables for security.
+## Features
 
-## Setup
+- **Multiple Pass Types:** Generate JWTs for generic passes, event tickets, and loyalty cards.
+- **Flexible Configuration:** Configure the script using environment variables, a configuration file, or command-line arguments.
+- **Custom Payloads:** Use the default pass payloads as a starting point or provide your own custom payload file to create unique passes.
+- **Automatic Help Message:** The script provides a detailed help message with all the available options.
 
-### 1. Set Your Private Key
+## Configuration
 
-You have two options:
+The script can be configured in three ways, in the following order of precedence:
 
-#### Option A: Environment Variable (Recommended for CI/CD)
+1.  **Command-line arguments:** (e.g., `--issuerId 12345`)
+2.  **Environment variables:** (e.g., `export GOOGLE_WALLET_ISSUER_ID=12345`)
+3.  **Configuration file:** (e.g., a `jwt.config.json` file)
+
+### Command-line Options
+
+| Option                  | Alias | Description                                                 | Type      | Default   | Required |
+| ----------------------- | ----- | ----------------------------------------------------------- | --------- | --------- | -------- |
+| `--type`                | `-t`  | Type of pass to generate (choices: generic, event, loyalty) | `string`  | `generic` |          |
+| `--output`              | `-o`  | Path to save the JWT to                                     | `string`  |           |          |
+| `--payloadFile`         | `-p`  | Path to a JSON file with custom payload data                | `string`  |           |          |
+| `--issuerId`            |       | Google Wallet Issuer ID                                     | `string`  |           | ✓        |
+| `--serviceAccountEmail` |       | Google Cloud service account email                          | `string`  |           | ✓        |
+| `--classId`             |       | Google Wallet Class ID                                      | `string`  |           |          |
+| `--privateKey`          |       | The private key itself                                      | `string`  |           |          |
+| `--keyFile`             |       | Path to the private key file                                | `string`  |           |          |
+| `--demoMode`            |       | Enable or disable demo mode                                 | `boolean` | `true`    |          |
+
+### Environment Variables
+
+You can also configure the script using environment variables with the `GOOGLE_WALLET_` prefix. For example:
 
 ```bash
-export GOOGLE_WALLET_PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----
-MIIEpAIBAAK...
------END RSA PRIVATE KEY-----"
-```
-
-#### Option B: Key File (Recommended for Local Development)
-
-```bash
-export GOOGLE_WALLET_KEY_FILE="/path/to/your/private-key.pem"
-```
-
-### 2. Configure Your Issuer Details (Optional)
-
-```bash
-# Your Google Wallet Issuer ID
-export GOOGLE_WALLET_ISSUER_ID="3388000000022205871"
-
-# Your service account email
-export GOOGLE_WALLET_SERVICE_ACCOUNT="wallet-service@project.iam.gserviceaccount.com"
-
-# Set to 'false' for production (removes [TEST ONLY] watermark)
-export GOOGLE_WALLET_DEMO_MODE="true"
+export GOOGLE_WALLET_ISSUER_ID="YOUR_ISSUER_ID"
+export GOOGLE_WALLET_SERVICE_ACCOUNT="YOUR_SERVICE_ACCOUNT_EMAIL"
+export GOOGLE_WALLET_KEY_FILE="/path/to/your/private-key.json"
+export GOOGLE_WALLET_CLASS_ID="YOUR_ISSUER_ID.pass-class-01"
 ```
 
 ## Usage
 
-### Generate a Generic Pass
+### Generate a Default Generic Pass
 
 ```bash
-node scripts/generate-jwt.js generic
+node scripts/generate-jwt.js
 ```
 
 ### Generate an Event Ticket
 
 ```bash
-node scripts/generate-jwt.js event
+node scripts/generate-jwt.js --type event
 ```
 
-### Generate a Loyalty Card
+### Generate a Loyalty Card and Save to a File
 
 ```bash
-node scripts/generate-jwt.js loyalty
+node scripts/generate-jwt.js --type loyalty --output loyalty.jwt
 ```
 
-### Save to File
+### Use a Custom Payload File
+
+1.  Copy one of the default payload files (e.g., `generic-payload.json`) to a new file (e.g., `my-pass.json`).
+2.  Modify `my-pass.json` with your desired pass data.
+3.  Run the script with the `--payloadFile` option:
 
 ```bash
-node scripts/generate-jwt.js generic output.jwt
+node scripts/generate-jwt.js --payloadFile my-pass.json
 ```
 
-## For Testing Only
+## Default Payloads
 
-If you just want to test the script structure (without Google Wallet), you can generate a demo RSA key:
+This directory contains three default payload files:
 
-```bash
-# Generate a test key (this won't work with actual Google Wallet)
-openssl genrsa -out demo-key.pem 2048
+- `generic-payload.json`
+- `event-payload.json`
+- `loyalty-payload.json`
 
-# Use it with the script
-export GOOGLE_WALLET_KEY_FILE="demo-key.pem"
-node scripts/generate-jwt.js generic
-```
-
-## For Production
-
-For actual Google Wallet integration, you need:
-
-1. **Google Cloud Project** with Wallet API enabled
-2. **Service Account** with appropriate permissions
-3. **Google Wallet Issuer Account** (create at [Google Pay & Wallet Console](https://pay.google.com/business/console))
-4. **Real Private Key** from your service account
-
-### Getting a Real Service Account Key
-
-1. Go to [Google Cloud Console](https://console.cloud.google.com)
-2. Select your project
-3. Go to IAM & Admin → Service Accounts
-4. Create or select a service account
-5. Create a new key (JSON format)
-6. Extract the private key from the JSON file
-
-## Security Notes
-
-⚠️ **NEVER commit private keys to version control**
-⚠️ **Always use environment variables or secure key management**
-⚠️ **Rotate keys regularly**
-⚠️ **Use different keys for development and production**
-
-## Environment Variables Summary
-
-| Variable                        | Description                   | Required |
-| ------------------------------- | ----------------------------- | -------- |
-| `GOOGLE_WALLET_PRIVATE_KEY`     | RSA private key string        | Yes\*    |
-| `GOOGLE_WALLET_KEY_FILE`        | Path to private key file      | Yes\*    |
-| `GOOGLE_WALLET_ISSUER_ID`       | Your Google Wallet Issuer ID  | No       |
-| `GOOGLE_WALLET_SERVICE_ACCOUNT` | Service account email         | No       |
-| `GOOGLE_WALLET_DEMO_MODE`       | Set to 'false' for production | No       |
-
-\* One of these is required
+These files are used as the default templates for generating passes. You can use them as a starting point for creating your own custom passes.

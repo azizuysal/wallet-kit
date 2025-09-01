@@ -1,0 +1,55 @@
+{
+  "payload": {
+    "genericObjects": [
+      {
+        "genericType": "GENERIC_TYPE_UNSPECIFIED",
+        "hexBackgroundColor": "#4285f4",
+        "logo": {
+          "sourceUri": {
+            "uri": "https://storage.googleapis.com/wallet-lab-tools-codelab-artifacts-public/pass_google_logo.jpg"
+          }
+        },
+        "cardTitle": {
+          "defaultValue": {
+            "language": "en",
+            "value": "Test Pass"
+          }
+        },
+        "subheader": {
+          "defaultValue": {
+            "language": "en",
+            "value": "Demo Mode"
+          }
+        },
+        "header": {
+          "defaultValue": {
+            "language": "en",
+            "value": "Wallet Kit"
+          }
+        },
+        "barcode": {
+          "type": "QR_CODE",
+          "value": "DEMO"
+        },
+        "heroImage": {
+          "sourceUri": {
+            "uri": "https://storage.googleapis.com/wallet-lab-tools-codelab-artifacts-public/google-io-hero-demo-only.jpg"
+          }
+        },
+        "textModulesData": [
+          {
+            "header": "POINTS",
+            "body": "1234",
+            "id": "points"
+          },
+          {
+            "header": "MEMBER",
+            "body": "Test User",
+            "id": "member"
+          }
+        ],
+        "state": "ACTIVE"
+      }
+    ]
+  }
+}

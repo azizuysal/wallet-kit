@@ -114,5 +114,9 @@
     "xcuserdata",
     "xcuserstate",
     "xcworkspace"
-  ]
+  ],
+  "sonarlint.connectedMode.project": {
+    "connectionId": "azizuysal",
+    "projectKey": "azizuysal_wallet-kit"
+  }
 }

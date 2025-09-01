@@ -1,0 +1,69 @@
+{
+  "payload": {
+    "eventTicketObjects": [
+      {
+        "state": "ACTIVE",
+        "seatInfo": {
+          "seat": {
+            "defaultValue": {
+              "language": "en",
+              "value": "A123"
+            }
+          },
+          "row": {
+            "defaultValue": {
+              "language": "en",
+              "value": "5"
+            }
+          },
+          "section": {
+            "defaultValue": {
+              "language": "en",
+              "value": "General"
+            }
+          }
+        },
+        "barcode": {
+          "type": "QR_CODE",
+          "value": "EVENT"
+        },
+        "ticketHolderName": "Test User",
+        "validTimeInterval": {
+          "start": {
+            "date": "2025-10-15T10:00:00Z"
+          }
+        }
+      }
+    ],
+    "eventTicketClasses": [
+      {
+        "issuerName": "Wallet Kit Demo",
+        "eventName": {
+          "defaultValue": {
+            "language": "en",
+            "value": "Test Event"
+          }
+        },
+        "venue": {
+          "name": {
+            "defaultValue": {
+              "language": "en",
+              "value": "Demo Venue"
+            }
+          },
+          "address": {
+            "defaultValue": {
+              "language": "en",
+              "value": "123 Demo Street"
+            }
+          }
+        },
+        "dateTime": {
+          "start": "2025-10-15T10:00:00Z"
+        },
+        "reviewStatus": "UNDER_REVIEW",
+        "hexBackgroundColor": "#FF5733"
+      }
+    ]
+  }
+}
