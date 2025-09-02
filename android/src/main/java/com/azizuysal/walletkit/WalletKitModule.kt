@@ -76,7 +76,7 @@ class WalletKitModule(reactContext: ReactApplicationContext) :
       return
     }
 
-    payClient = Pay.getClient(activity)
+    payClient = Pay.getClient(activity.applicationContext)
     addToGoogleWalletPromise = promise
 
     payClient
@@ -109,7 +109,7 @@ class WalletKitModule(reactContext: ReactApplicationContext) :
       return
     }
 
-    payClient = Pay.getClient(activity)
+    payClient = Pay.getClient(activity.applicationContext)
     addToGoogleWalletPromise = promise
 
     payClient
@@ -152,11 +152,11 @@ class WalletKitModule(reactContext: ReactApplicationContext) :
         sendAddPassCompletedEvent(true)
       }
       Activity.RESULT_CANCELED -> {
-        promise.reject(ERR_WALLET_CANCELLED, "User cancelled adding pass to wallet")
+        promise.resolve(null)
         sendAddPassCompletedEvent(false)
       }
       else -> {
-        promise.reject(ERR_WALLET_UNKNOWN, "Unknown error occurred while adding pass")
+        promise.resolve(null)
         sendAddPassCompletedEvent(false)
       }
     }

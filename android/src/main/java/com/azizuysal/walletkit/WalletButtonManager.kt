@@ -15,11 +15,8 @@ class WalletButtonManager : SimpleViewManager<RelativeLayout>() {
   }
 
   override fun createViewInstance(reactContext: ThemedReactContext): RelativeLayout {
-    // Create a container that can switch between button styles
     val container = RelativeLayout(reactContext)
     val inflater = LayoutInflater.from(reactContext)
-    
-    // Load standard button layout
     val standardButton = try {
       inflater.inflate(R.layout.add_to_googlewallet_button, null) as RelativeLayout
     } catch (e: Exception) {
@@ -36,7 +33,6 @@ class WalletButtonManager : SimpleViewManager<RelativeLayout>() {
       }
     }
     
-    // Load badge layout
     val badgeButton = try {
       inflater.inflate(R.layout.add_to_googlewallet_badge, null) as RelativeLayout
     } catch (e: Exception) {
@@ -53,7 +49,6 @@ class WalletButtonManager : SimpleViewManager<RelativeLayout>() {
       }
     }
     
-    // Add both to container
     standardButton.tag = "standard"
     container.addView(standardButton)
     
@@ -63,7 +58,7 @@ class WalletButtonManager : SimpleViewManager<RelativeLayout>() {
       container.addView(badgeButton)
     }
     
-    container.tag = 0 // Store current style
+    container.tag = 0
     applyButtonStyle(container, 0)
     
     return container
@@ -74,7 +69,6 @@ class WalletButtonManager : SimpleViewManager<RelativeLayout>() {
     view.tag = style
     applyButtonStyle(view, style)
     
-    // Ensure click listeners are maintained after style change
     ensureClickListeners(view)
   }
   
@@ -84,7 +78,6 @@ class WalletButtonManager : SimpleViewManager<RelativeLayout>() {
     
     when (style) {
       0 -> {
-        // Primary: show standard button
         standardButton?.visibility = View.VISIBLE
         badgeButton?.visibility = View.GONE
         
@@ -98,7 +91,6 @@ class WalletButtonManager : SimpleViewManager<RelativeLayout>() {
         }
       }
       1, 2 -> {
-        // Secondary/Outline: show badge style (Google doesn't have outline style)
         if (badgeButton != null) {
           standardButton?.visibility = View.GONE
           badgeButton.visibility = View.VISIBLE
@@ -112,7 +104,6 @@ class WalletButtonManager : SimpleViewManager<RelativeLayout>() {
             container.layoutParams.height = dpToPx(53f, container.context).toInt()
           }
         } else {
-          // Fallback to standard if badge not available
           standardButton?.visibility = View.VISIBLE
           
           if (container.layoutParams == null) {
@@ -126,7 +117,6 @@ class WalletButtonManager : SimpleViewManager<RelativeLayout>() {
         }
       }
       else -> {
-        // Default to standard
         standardButton?.visibility = View.VISIBLE
         badgeButton?.visibility = View.GONE
         
@@ -160,15 +150,12 @@ class WalletButtonManager : SimpleViewManager<RelativeLayout>() {
         .receiveEvent(view.id, "topPress", null)
     }
     
-    // Store the listener on the view for reuse
     view.setTag(R.id.click_listener_tag, clickListener)
     
-    // Set click listener on container
     view.setOnClickListener(clickListener)
     view.isClickable = true
     view.isFocusable = true
     
-    // Also set click listener on child buttons to propagate clicks
     val standardButton = view.findViewWithTag<View>("standard")
     val badgeButton = view.findViewWithTag<View>("badge")
     
@@ -177,11 +164,9 @@ class WalletButtonManager : SimpleViewManager<RelativeLayout>() {
   }
   
   private fun ensureClickListeners(view: RelativeLayout) {
-    // Get the stored click listener
     val clickListener = view.getTag(R.id.click_listener_tag) as? View.OnClickListener
     
     if (clickListener != null) {
-      // Reapply to child buttons
       val standardButton = view.findViewWithTag<View>("standard")
       val badgeButton = view.findViewWithTag<View>("badge")
       

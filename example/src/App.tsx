@@ -7,6 +7,7 @@ import WalletKit, {
   detectPassType,
 } from '@azizuysal/wallet-kit';
 import {
+  Alert,
   Platform,
   SafeAreaView,
   ScrollView,
@@ -38,6 +39,12 @@ const App = () => {
       'AddPassCompleted',
       (success: boolean) => {
         console.log('AddPassCompleted with success: ', success);
+        const message = success
+          ? 'Wallet operation completed successfully'
+          : 'Operation cancelled';
+        Alert.alert(success ? 'Success' : 'Info', message, [{ text: 'OK' }], {
+          cancelable: true,
+        });
       }
     );
     return () => listener.remove();
@@ -85,6 +92,12 @@ const App = () => {
       await WalletKit.addPass(passData);
     } catch (error: any) {
       console.error('Error adding pass:', error.code || error.message);
+      if (Platform.OS === 'ios') {
+        const errorMessage = `Failed to add pass: ${error.message || error.code || 'Unknown error'}`;
+        Alert.alert('Error', errorMessage, [{ text: 'OK' }], {
+          cancelable: true,
+        });
+      }
     }
   };
 
@@ -102,6 +115,12 @@ const App = () => {
       await WalletKit.addPasses(passes);
     } catch (error: any) {
       console.error('Error adding passes:', error.code || error.message);
+      if (Platform.OS === 'ios') {
+        const errorMessage = `Failed to add passes: ${error.message || error.code || 'Unknown error'}`;
+        Alert.alert('Error', errorMessage, [{ text: 'OK' }], {
+          cancelable: true,
+        });
+      }
     }
   };
 
@@ -159,17 +178,6 @@ const App = () => {
           >
             <Text style={styles.actionButtonText}>Add Multiple Passes</Text>
           </TouchableOpacity>
-
-          {Platform.OS === 'android' && (
-            <View style={styles.noteBox}>
-              <Text style={styles.noteTitle}>Android Note:</Text>
-              <Text style={styles.noteText}>
-                This example uses a dummy JWT for demonstration. In production,
-                you would generate proper JWTs on your server with your Google
-                Wallet API credentials.
-              </Text>
-            </View>
-          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -245,23 +253,6 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
-  },
-  noteBox: {
-    backgroundColor: '#FFF9C4',
-    borderRadius: 10,
-    padding: 15,
-    marginTop: 20,
-  },
-  noteTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 5,
-    color: '#F57C00',
-  },
-  noteText: {
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
   },
 });
 

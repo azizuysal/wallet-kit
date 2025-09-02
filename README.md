@@ -88,7 +88,7 @@ try {
   await WalletKit.addPass(passData);
   console.log('Pass addition UI shown');
 } catch (error) {
-  if (error.code === 'USER_CANCELLED') {
+  if (error.code === 'ERR_WALLET_CANCELLED') {
     console.log('User cancelled the operation');
   }
 }

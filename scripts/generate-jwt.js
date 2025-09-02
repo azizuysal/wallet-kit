@@ -14,7 +14,6 @@ const path = require('path');
 const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
 
-// Deep merge function to merge custom payload with default payload
 const deepMerge = (target, source) => {
   for (const key in source) {
     if (source[key] instanceof Object && key in target) {
