@@ -156,7 +156,7 @@ class WalletKitModule(reactContext: ReactApplicationContext) :
         sendAddPassCompletedEvent(false)
       }
       else -> {
-        promise.resolve(null)
+        promise.reject(ERR_WALLET_UNKNOWN, "Unexpected result code from Google Wallet: $resultCode")
         sendAddPassCompletedEvent(false)
       }
     }

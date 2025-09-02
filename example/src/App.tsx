@@ -92,12 +92,10 @@ const App = () => {
       await WalletKit.addPass(passData);
     } catch (error: any) {
       console.error('Error adding pass:', error.code || error.message);
-      if (Platform.OS === 'ios') {
-        const errorMessage = `Failed to add pass: ${error.message || error.code || 'Unknown error'}`;
-        Alert.alert('Error', errorMessage, [{ text: 'OK' }], {
-          cancelable: true,
-        });
-      }
+      const errorMessage = `Failed to add pass: ${error.message || error.code || 'Unknown error'}`;
+      Alert.alert('Error', errorMessage, [{ text: 'OK' }], {
+        cancelable: true,
+      });
     }
   };
 
@@ -115,12 +113,10 @@ const App = () => {
       await WalletKit.addPasses(passes);
     } catch (error: any) {
       console.error('Error adding passes:', error.code || error.message);
-      if (Platform.OS === 'ios') {
-        const errorMessage = `Failed to add passes: ${error.message || error.code || 'Unknown error'}`;
-        Alert.alert('Error', errorMessage, [{ text: 'OK' }], {
-          cancelable: true,
-        });
-      }
+      const errorMessage = `Failed to add passes: ${error.message || error.code || 'Unknown error'}`;
+      Alert.alert('Error', errorMessage, [{ text: 'OK' }], {
+        cancelable: true,
+      });
     }
   };
 
