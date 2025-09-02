@@ -209,10 +209,6 @@
               "section": "Bug Fixes"
             },
             {
-              "type": "chore",
-              "section": "Chores"
-            },
-            {
               "type": "docs",
               "section": "Documentation"
             },
@@ -222,19 +218,38 @@
             },
             {
               "type": "refactor",
-              "section": "Refactoring"
+              "section": "Code Refactoring"
             },
             {
               "type": "perf",
-              "section": "Performance"
+              "section": "Performance Improvements"
             },
             {
               "type": "test",
               "section": "Tests"
+            },
+            {
+              "type": "build",
+              "section": "Build System"
+            },
+            {
+              "type": "ci",
+              "section": "Continuous Integration"
+            },
+            {
+              "type": "chore",
+              "hidden": true
+            },
+            {
+              "type": "revert",
+              "section": "Reverts"
             }
           ]
         },
-        "infile": "CHANGELOG.md"
+        "infile": "CHANGELOG.md",
+        "header": "# Changelog\n\nAll notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.\n",
+        "strictSemVer": true,
+        "releaseCount": 1
       }
     }
   },
