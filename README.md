@@ -145,46 +145,7 @@ subscription.remove();
 
 ## API Reference
 
-### Methods
-
-#### `canAddPasses(): Promise<boolean>`
-
-Check if the device can add passes to the wallet.
-
-#### `addPass(passData: string): Promise<void>`
-
-Add a single pass to the wallet.
-
-- **iOS**: `passData` should be a base64-encoded .pkpass file
-- **Android**: `passData` should be a JWT token string
-
-#### `addPasses(passDataArray: string[]): Promise<void>`
-
-Add multiple passes to the wallet.
-
-**Note:** On Android, the Google Wallet API currently only supports adding one JWT at a time. When multiple JWTs are provided, only the first one will be added. For true multi-pass support on Android, you need to combine multiple passes into a single JWT on your server side.
-
-### Components
-
-#### `<WalletButton />`
-
-Native wallet button component.
-
-**Props:**
-
-- `addPassButtonStyle?: WalletButtonStyle` - Button style (primary, secondary, outline)
-- `onPress?: () => void` - Button press handler
-- Standard React Native `ViewProps`
-
-### Types
-
-#### `WalletButtonStyle`
-
-Enum for button styles:
-
-- `primary` - Black button on iOS, dark button on Android
-- `secondary` - Black outline on iOS, light button on Android
-- `outline` - Black outline on iOS, outline button on Android
+For complete API documentation, see the [API Reference](https://azizuysal.github.io/wallet-kit/).
 
 ### Error Codes
 
@@ -227,7 +188,7 @@ const passData = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...';
 The native buttons follow platform-specific design guidelines:
 
 - **iOS**: Uses Apple's PKAddPassButton
-- **Android**: Custom button following Material Design
+- **Android**: Uses official Google Wallet button layouts
 
 ## Troubleshooting
 
