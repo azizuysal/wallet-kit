@@ -11,6 +11,20 @@ ignore:
     - '*':
         reason: React Native upgrades are managed manually
         expires: '2025-12-31T23:59:59.999Z'
+  
+  # Ignore Ruby dependencies in example app
+  'rubygems:cocoapods':
+    - '*':
+        reason: Ruby dependencies in example app are not critical
+        expires: '2025-12-31T23:59:59.999Z'
+  'rubygems:xcodeproj':
+    - '*':
+        reason: Ruby dependencies in example app are not critical
+        expires: '2025-12-31T23:59:59.999Z'
+  'rubygems:activesupport':
+    - '*':
+        reason: Ruby dependencies in example app are not critical
+        expires: '2025-12-31T23:59:59.999Z'
 
 # Patch settings
 patch: {}
