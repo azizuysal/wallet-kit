@@ -1,0 +1,16 @@
+# Snyk (https://snyk.io) policy file
+version: v1.25.0
+
+# Ignore React Native upgrades
+ignore:
+  'npm:react-native':
+    - '*':
+        reason: React Native upgrades are managed manually
+        expires: '2025-12-31T23:59:59.999Z'
+  'npm:react-native@*':
+    - '*':
+        reason: React Native upgrades are managed manually
+        expires: '2025-12-31T23:59:59.999Z'
+
+# Patch settings
+patch: {}
