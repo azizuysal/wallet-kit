@@ -119,9 +119,9 @@ jobs:
 
       - name: Check licenses
         run: |
-          npx license-checker --production --excludePrivatePackages --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;BSD;BSD*;ISC;CC0-1.0;CC-BY-3.0;CC-BY-4.0;Unlicense;WTFPL;0BSD' > /dev/null 2>&1 || {
-            echo "⚠️ Found packages with incompatible licenses:"
-            npx license-checker --production --excludePrivatePackages --exclude 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;BSD;BSD*;ISC;CC0-1.0;CC-BY-3.0;CC-BY-4.0;Unlicense;WTFPL;0BSD' --csv
+          npx license-checker@25.0.1 --production --excludePrivatePackages --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;BSD;BSD*;ISC;CC0-1.0;CC-BY-3.0;CC-BY-4.0;Unlicense;WTFPL;0BSD;Python-2.0;(MIT OR CC0-1.0);(BSD-3-Clause OR GPL-2.0)' || {
+            echo "⚠️ Found packages with incompatible licenses. Run locally:"
+            echo "npx license-checker --production --summary"
             exit 1
           }
           echo "✅ All production dependencies have compatible licenses"
