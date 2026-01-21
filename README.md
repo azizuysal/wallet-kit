@@ -2,7 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/@azizuysal/wallet-kit.svg)](https://www.npmjs.com/package/@azizuysal/wallet-kit)
 [![npm downloads](https://img.shields.io/npm/dt/@azizuysal/wallet-kit.svg)](https://www.npmjs.com/package/@azizuysal/wallet-kit)
-[![npm bundle size](https://img.shields.io/bundlephobia/min/@azizuysal/wallet-kit)](https://bundlephobia.com/package/@azizuysal/wallet-kit)
+[![npm package size](https://img.shields.io/npm/unpacked-size/@azizuysal/wallet-kit)](https://www.npmjs.com/package/@azizuysal/wallet-kit)
 [![Platform - iOS](https://img.shields.io/badge/platform-iOS-lightgrey.svg)](https://developer.apple.com/ios/)
 [![Platform - Android](https://img.shields.io/badge/platform-Android-brightgreen.svg)](https://developer.android.com/)
 [![React Native](https://img.shields.io/badge/React%20Native-0.73+-blue.svg)](https://reactnative.dev/)
@@ -13,7 +13,6 @@
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=azizuysal_wallet-kit&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=azizuysal_wallet-kit)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=azizuysal_wallet-kit&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=azizuysal_wallet-kit)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-3178C6.svg?logo=typescript)](https://www.typescriptlang.org/)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/azizuysal/wallet-kit/blob/main/CONTRIBUTING.md)
 
 A React Native library for integrating with Apple Wallet (iOS) and Google Wallet (Android), providing a unified API for adding passes to mobile wallets.
 
