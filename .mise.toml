@@ -1,0 +1,4 @@
+[tools]
+node = "18"
+java = "17"
+ruby = "3.3"
