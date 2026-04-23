@@ -5,7 +5,7 @@
 [![npm package size](https://img.shields.io/npm/unpacked-size/@azizuysal/wallet-kit)](https://www.npmjs.com/package/@azizuysal/wallet-kit)
 [![Platform - iOS](https://img.shields.io/badge/platform-iOS-lightgrey.svg)](https://developer.apple.com/ios/)
 [![Platform - Android](https://img.shields.io/badge/platform-Android-brightgreen.svg)](https://developer.android.com/)
-[![React Native](https://img.shields.io/badge/React%20Native-0.73+-blue.svg)](https://reactnative.dev/)
+[![React Native](https://img.shields.io/badge/React%20Native-supported-blue.svg)](https://reactnative.dev/)
 [![License](https://img.shields.io/github/license/azizuysal/wallet-kit)](https://github.com/azizuysal/wallet-kit/blob/main/LICENSE)
 [![CI](https://github.com/azizuysal/wallet-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/azizuysal/wallet-kit/actions/workflows/ci.yml)
 [![Security](https://github.com/azizuysal/wallet-kit/actions/workflows/security.yml/badge.svg)](https://github.com/azizuysal/wallet-kit/actions/workflows/security.yml)
@@ -18,18 +18,18 @@ A React Native library for integrating with Apple Wallet (iOS) and Google Wallet
 
 ## Features
 
-- ✅ **Cross-platform support** - Works with both Apple Wallet and Google Wallet
-- ✅ **TypeScript support** - Fully typed API with comprehensive JSDoc documentation
-- ✅ **Native UI components** - Platform-specific "Add to Wallet" buttons
-- ✅ **Event handling** - Listen for pass addition completion events
-- ✅ **Multiple passes** - Support for adding single or multiple passes at once
-- ✅ **Error handling** - Detailed error codes for different failure scenarios
+- **Cross-platform** - Apple Wallet (iOS) and Google Wallet (Android) under a unified TypeScript API.
+- **Input validation** - Pass data is validated at the JS layer before reaching native code; invalid inputs fail fast with stable error codes.
+- **Native UI components** - Platform-specific "Add to Wallet" buttons (`PKAddPassButton` on iOS, the official Google Wallet button on Android) with localized branding.
+- **Event handling** - Subscribe to `AddPassCompleted` to learn the outcome of an add-pass flow.
+- **Multiple passes on iOS** - `addPasses` presents multiple `.pkpass` files in a single Apple Wallet sheet. Google Wallet accepts a single combined JWT per call; see [Platform Differences](#platform-differences).
+- **Stable error taxonomy** - A single set of error codes (`INVALID_PASS`, `ERR_WALLET_NOT_AVAILABLE`, `ERR_WALLET_UNKNOWN`, etc.) shared across platforms; see [Error Codes](#error-codes). User cancellation is reported through the `AddPassCompleted` event, not as a Promise rejection.
 
 ## Documentation
 
-- 📖 [API Reference](https://azizuysal.github.io/wallet-kit/) - Complete API documentation
-- 📚 [Usage Examples](#usage) - Code examples and patterns
-- 🔧 [Troubleshooting](#troubleshooting) - Common issues and solutions
+- [API Reference](https://azizuysal.github.io/wallet-kit/) — full API documentation.
+- [Usage Examples](#usage) — code examples and patterns.
+- [Troubleshooting](#troubleshooting) — common issues and solutions.
 
 ## Installation
 
@@ -38,6 +38,12 @@ npm install @azizuysal/wallet-kit
 # or
 yarn add @azizuysal/wallet-kit
 ```
+
+## Compatibility
+
+The 1.x series is a stabilization line focused on correctness, error handling, and input validation. It does not publish a formal React Native compatibility matrix — your React Native version determines the iOS and Android floors (see [iOS Setup](#ios-setup) and [Android Setup](#android-setup)).
+
+The 2.x series will introduce a tested compatibility matrix, published iOS/Android floors, a narrower `peerDependencies` range, and New Architecture support via TurboModule/Fabric. If you need a specific React Native version guarantee, pin to a 2.x release when it ships.
 
 ### iOS Setup
 
@@ -51,7 +57,7 @@ yarn add @azizuysal/wallet-kit
 
 ### Android Setup
 
-1. Ensure your `minSdkVersion` is 21 or higher
+1. Ensure your app's `minSdkVersion` is compatible with the React Native version you use (React Native 0.74 requires `minSdkVersion=23`, 0.76+ requires `minSdkVersion=24`). `@azizuysal/wallet-kit` inherits the floor from your React Native version.
 2. Add the following to your app's `AndroidManifest.xml`:
 
 ```xml
@@ -72,6 +78,7 @@ import WalletKit, {
   WalletButton,
   WalletButtonStyle,
   createWalletEventEmitter,
+  type WalletError,
 } from '@azizuysal/wallet-kit';
 
 // Check if device can add passes
@@ -87,16 +94,26 @@ try {
   await WalletKit.addPass(passData);
   console.log('Pass addition UI shown');
 } catch (error) {
-  if (error.code === 'ERR_WALLET_CANCELLED') {
-    console.log('User cancelled the operation');
+  const walletError = error as WalletError;
+  if (walletError.code === 'INVALID_PASS') {
+    console.error('Pass data was rejected:', walletError.message);
+  } else {
+    console.error('Failed to present wallet sheet:', walletError);
   }
 }
+// User cancellation is reported via the AddPassCompleted event, not via a
+// rejection. See the "Listening to Events" section below.
 
-// Add multiple passes
+// Add multiple passes (iOS accepts any count; Android requires a single combined JWT)
 try {
   await WalletKit.addPasses([pass1, pass2, pass3]);
 } catch (error) {
-  console.error('Failed to add passes:', error);
+  const walletError = error as WalletError;
+  if (walletError.code === 'ERR_WALLET_MULTIPLE_NOT_SUPPORTED') {
+    // Android: combine your passes into a single JWT server-side and call addPass instead.
+  } else {
+    console.error('Failed to add passes:', walletError);
+  }
 }
 ```
 
@@ -148,23 +165,30 @@ For complete API documentation, see the [API Reference](https://azizuysal.github
 
 ### Error Codes
 
-#### Pass Validation Errors
+All methods reject with an `Error` whose `code` property is one of:
 
-- `INVALID_PASS` - Invalid pass data format
-- `UNSUPPORTED_VERSION` - Pass version not supported (iOS)
+#### Pass validation
 
-#### User Actions
+- `INVALID_PASS` — Pass data is missing, empty, or not in a recognized wallet pass format (neither a base64-encoded `.pkpass` nor a JWT). This can be raised either by the JS layer (before the native call) or by the native layer.
+- `UNSUPPORTED_VERSION` — The pass version is not supported (iOS only).
 
-- `ERR_WALLET_CANCELLED` - User cancelled the operation
+#### Platform availability
 
-#### System Availability
+- `ERR_WALLET_NOT_AVAILABLE` — The wallet app is not available on the device.
+- `ERR_WALLET_ACTIVITY_NULL` — Android only: no activity was attached when the call was made.
 
-- `ERR_WALLET_NOT_AVAILABLE` - Wallet app not available on device
-- `ERR_WALLET_ACTIVITY_NULL` - Android specific: Activity is null
+#### Android-specific API constraints
 
-#### Generic Errors
+- `ERR_WALLET_MULTIPLE_NOT_SUPPORTED` — Android only: `addPasses` was called with more than one entry. The Google Wallet API only accepts a single JWT per call; combine multiple passes into one JWT on your server.
+- `ERR_WALLET_IN_PROGRESS` — Android only: another add-pass call is already in flight. Wait for it to resolve or reject before issuing another.
 
-- `ERR_WALLET_UNKNOWN` - Unknown error occurred
+#### Generic
+
+- `ERR_WALLET_UNKNOWN` — An unexpected error occurred.
+
+#### User cancellation
+
+User cancellation is **not** reported as a Promise rejection on either platform. The `addPass` / `addPasses` promise resolves when the wallet sheet is presented; the final outcome (added vs. cancelled) is delivered via the `AddPassCompleted` event. See [Listening to Events](#listening-to-events) for the correct pattern.
 
 ## Platform Differences
 

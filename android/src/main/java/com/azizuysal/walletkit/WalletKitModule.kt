@@ -4,24 +4,28 @@ import android.app.Activity
 import android.content.Intent
 import com.facebook.react.bridge.ActivityEventListener
 import com.facebook.react.bridge.BaseActivityEventListener
+import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableArray
-import com.facebook.react.bridge.WritableMap
 import com.facebook.react.modules.core.DeviceEventManagerModule
+import android.util.Log
 import com.google.android.gms.pay.Pay
 import com.google.android.gms.pay.PayApiAvailabilityStatus
 import com.google.android.gms.pay.PayClient
+import java.util.concurrent.atomic.AtomicInteger
 
 class WalletKitModule(reactContext: ReactApplicationContext) :
-  ReactContextBaseJavaModule(reactContext) {
+  ReactContextBaseJavaModule(reactContext),
+  LifecycleEventListener {
 
-  private var listenerCount = 0
-  private lateinit var payClient: PayClient
-  private var addToGoogleWalletPromise: Promise? = null
+  private val listenerCount = AtomicInteger(0)
+  private val payClient: PayClient = Pay.getClient(reactContext)
+
+  private var pendingPromise: Promise? = null
 
   private val activityEventListener: ActivityEventListener = object : BaseActivityEventListener() {
     override fun onActivityResult(activity: Activity?, requestCode: Int, resultCode: Int, data: Intent?) {
@@ -33,40 +37,42 @@ class WalletKitModule(reactContext: ReactApplicationContext) :
 
   init {
     reactContext.addActivityEventListener(activityEventListener)
+    reactContext.addLifecycleEventListener(this)
   }
 
-  override fun getName(): String {
-    return NAME
-  }
+  override fun getName(): String = NAME
 
   companion object {
     const val NAME = "WalletKit"
+    private const val INVALID_PASS = "INVALID_PASS"
     private const val ERR_WALLET_NOT_AVAILABLE = "ERR_WALLET_NOT_AVAILABLE"
-    private const val ERR_WALLET_CANCELLED = "ERR_WALLET_CANCELLED"
     private const val ERR_WALLET_UNKNOWN = "ERR_WALLET_UNKNOWN"
     private const val ERR_WALLET_ACTIVITY_NULL = "ERR_WALLET_ACTIVITY_NULL"
+    private const val ERR_WALLET_MULTIPLE_NOT_SUPPORTED = "ERR_WALLET_MULTIPLE_NOT_SUPPORTED"
+    private const val ERR_WALLET_IN_PROGRESS = "ERR_WALLET_IN_PROGRESS"
     private const val ADD_TO_GOOGLE_WALLET_REQUEST_CODE = 1000
   }
 
   @ReactMethod
   fun canAddPasses(promise: Promise) {
-    payClient = Pay.getClient(reactApplicationContext)
-    
     payClient
       .getPayApiAvailabilityStatus(PayClient.RequestType.SAVE_PASSES)
       .addOnSuccessListener { status ->
-        val canAdd = status == PayApiAvailabilityStatus.AVAILABLE
-        promise.resolve(canAdd)
+        promise.resolve(status == PayApiAvailabilityStatus.AVAILABLE)
       }
-      .addOnFailureListener {
-        promise.resolve(false)
+      .addOnFailureListener { exception ->
+        promise.reject(
+          ERR_WALLET_UNKNOWN,
+          "Failed to check Google Wallet availability: ${exception.message}",
+          exception
+        )
       }
   }
 
   @ReactMethod
   fun addPass(passData: String?, promise: Promise) {
-    if (passData == null || passData.isEmpty()) {
-      promise.reject(ERR_WALLET_UNKNOWN, "Pass data is required")
+    if (passData.isNullOrEmpty()) {
+      promise.reject(INVALID_PASS, "Pass data must be a non-empty JWT string")
       return
     }
 
@@ -76,30 +82,32 @@ class WalletKitModule(reactContext: ReactApplicationContext) :
       return
     }
 
-    payClient = Pay.getClient(activity.applicationContext)
-    addToGoogleWalletPromise = promise
+    if (!claimPendingPromise(promise)) {
+      return
+    }
 
-    payClient
-      .getPayApiAvailabilityStatus(PayClient.RequestType.SAVE_PASSES)
-      .addOnSuccessListener { status ->
-        if (status == PayApiAvailabilityStatus.AVAILABLE) {
-          val jwt = passData.trim()
-          payClient.savePassesJwt(jwt, activity, ADD_TO_GOOGLE_WALLET_REQUEST_CODE)
-        } else {
-          promise.reject(ERR_WALLET_NOT_AVAILABLE, "Google Wallet is not available on this device")
-          addToGoogleWalletPromise = null
-        }
-      }
-      .addOnFailureListener { exception ->
-        promise.reject(ERR_WALLET_UNKNOWN, "Failed to check Google Wallet availability: ${exception.message}")
-        addToGoogleWalletPromise = null
-      }
+    val jwt = passData.trim()
+    checkAvailabilityAndSave(jwt, activity)
   }
 
   @ReactMethod
   fun addPasses(passDataArray: ReadableArray?, promise: Promise) {
     if (passDataArray == null || passDataArray.size() == 0) {
-      promise.reject(ERR_WALLET_UNKNOWN, "Pass data array is required")
+      promise.reject(INVALID_PASS, "Pass data array must be a non-empty array of pass strings")
+      return
+    }
+
+    if (passDataArray.size() > 1) {
+      promise.reject(
+        ERR_WALLET_MULTIPLE_NOT_SUPPORTED,
+        "Google Wallet requires multiple passes to be combined into a single JWT. Call addPass with one combined JWT instead."
+      )
+      return
+    }
+
+    val firstJwt = passDataArray.getString(0)?.trim()
+    if (firstJwt.isNullOrEmpty()) {
+      promise.reject(INVALID_PASS, "Pass data at index 0 must be a non-empty JWT string")
       return
     }
 
@@ -109,42 +117,86 @@ class WalletKitModule(reactContext: ReactApplicationContext) :
       return
     }
 
-    payClient = Pay.getClient(activity.applicationContext)
-    addToGoogleWalletPromise = promise
+    if (!claimPendingPromise(promise)) {
+      return
+    }
 
+    checkAvailabilityAndSave(firstJwt, activity)
+  }
+
+  @Synchronized
+  private fun claimPendingPromise(promise: Promise): Boolean {
+    if (pendingPromise != null) {
+      promise.reject(
+        ERR_WALLET_IN_PROGRESS,
+        "Another add-pass call is already in flight. Wait for it to resolve or reject before issuing another."
+      )
+      return false
+    }
+    pendingPromise = promise
+    return true
+  }
+
+  @Synchronized
+  private fun releasePendingPromise(): Promise? {
+    val promise = pendingPromise
+    pendingPromise = null
+    return promise
+  }
+
+  @Synchronized
+  private fun hasPendingPromise(): Boolean = pendingPromise != null
+
+  private fun checkAvailabilityAndSave(jwt: String, activity: Activity) {
     payClient
       .getPayApiAvailabilityStatus(PayClient.RequestType.SAVE_PASSES)
       .addOnSuccessListener { status ->
+        // The host activity or the React Native module may be torn down
+        // while this availability check is in flight. If the pending
+        // promise is already gone, there is no consumer left to notify,
+        // so skip the native call entirely rather than risk an exception
+        // on a destroyed activity.
+        if (!hasPendingPromise()) {
+          return@addOnSuccessListener
+        }
+
         if (status == PayApiAvailabilityStatus.AVAILABLE) {
-          if (passDataArray.size() > 0) {
-            val firstJwt = passDataArray.getString(0)?.trim()
-            if (firstJwt != null) {
-              if (passDataArray.size() > 1) {
-                android.util.Log.w(NAME, "Multiple passes provided but only the first will be added. " +
-                  "Google Wallet API requires passes to be combined in a single JWT.")
-              }
-              payClient.savePassesJwt(firstJwt, activity, ADD_TO_GOOGLE_WALLET_REQUEST_CODE)
+          try {
+            payClient.savePassesJwt(jwt, activity, ADD_TO_GOOGLE_WALLET_REQUEST_CODE)
+          } catch (exception: Exception) {
+            val promise = releasePendingPromise()
+            if (promise != null) {
+              promise.reject(
+                ERR_WALLET_UNKNOWN,
+                "Failed to launch Google Wallet: ${exception.message}",
+                exception
+              )
             } else {
-              promise.reject(ERR_WALLET_UNKNOWN, "Invalid pass data")
-              addToGoogleWalletPromise = null
+              // Lifecycle destruction raced with savePassesJwt after our
+              // hasPendingPromise() check. No consumer left to reject, so
+              // surface the exception to logcat as an error so it is not
+              // completely lost.
+              Log.e(NAME, "savePassesJwt threw after promise was released", exception)
             }
-          } else {
-            promise.reject(ERR_WALLET_UNKNOWN, "No pass data provided")
-            addToGoogleWalletPromise = null
           }
         } else {
-          promise.reject(ERR_WALLET_NOT_AVAILABLE, "Google Wallet is not available on this device")
-          addToGoogleWalletPromise = null
+          releasePendingPromise()?.reject(
+            ERR_WALLET_NOT_AVAILABLE,
+            "Google Wallet is not available on this device"
+          )
         }
       }
       .addOnFailureListener { exception ->
-        promise.reject(ERR_WALLET_UNKNOWN, "Failed to check Google Wallet availability: ${exception.message}")
-        addToGoogleWalletPromise = null
+        releasePendingPromise()?.reject(
+          ERR_WALLET_UNKNOWN,
+          "Failed to check Google Wallet availability: ${exception.message}",
+          exception
+        )
       }
   }
 
   private fun handleAddToWalletResult(resultCode: Int) {
-    val promise = addToGoogleWalletPromise ?: return
+    val promise = releasePendingPromise() ?: return
 
     when (resultCode) {
       Activity.RESULT_OK -> {
@@ -160,24 +212,25 @@ class WalletKitModule(reactContext: ReactApplicationContext) :
         sendAddPassCompletedEvent(false)
       }
     }
-    
-    addToGoogleWalletPromise = null
   }
 
   private fun sendAddPassCompletedEvent(success: Boolean) {
-    if (listenerCount > 0) {
+    if (listenerCount.get() > 0) {
       sendEvent(reactApplicationContext, "AddPassCompleted", success)
     }
   }
 
   @ReactMethod
   fun addListener(eventName: String?) {
-    listenerCount += 1
+    listenerCount.incrementAndGet()
   }
 
   @ReactMethod
   fun removeListeners(count: Int) {
-    listenerCount -= count
+    listenerCount.updateAndGet { current ->
+      val next = current - count
+      if (next < 0) 0 else next
+    }
   }
 
   private fun sendEvent(
@@ -188,5 +241,30 @@ class WalletKitModule(reactContext: ReactApplicationContext) :
     reactContext
       .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
       .emit(eventName, params)
+  }
+
+  override fun onHostResume() {
+    // no-op
+  }
+
+  override fun onHostPause() {
+    // no-op
+  }
+
+  override fun onHostDestroy() {
+    releasePendingPromise()?.reject(
+      ERR_WALLET_UNKNOWN,
+      "Host activity was destroyed before the Google Wallet result was received"
+    )
+  }
+
+  override fun invalidate() {
+    super.invalidate()
+    releasePendingPromise()?.reject(
+      ERR_WALLET_UNKNOWN,
+      "WalletKit module was invalidated before the Google Wallet result was received"
+    )
+    reactApplicationContext.removeActivityEventListener(activityEventListener)
+    reactApplicationContext.removeLifecycleEventListener(this)
   }
 }

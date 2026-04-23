@@ -153,26 +153,33 @@
       "!src/**/*.d.ts",
       "!src/**/__tests__/**",
       "!src/**/*.test.{ts,tsx}",
-      "!src/**/*.spec.{ts,tsx}"
+      "!src/**/*.spec.{ts,tsx}",
+      "!src/WalletButton.types.ts"
     ],
     "coverageThreshold": {
       "global": {
-        "branches": 80,
-        "functions": 80,
-        "lines": 85,
-        "statements": 85
+        "branches": 90,
+        "functions": 90,
+        "lines": 90,
+        "statements": 90
       },
-      "./src/WalletButton.tsx": {
+      "./src/WalletButton.ios.tsx": {
+        "branches": 95,
+        "functions": 100,
+        "lines": 100,
+        "statements": 100
+      },
+      "./src/WalletButton.android.tsx": {
         "branches": 95,
         "functions": 100,
         "lines": 100,
         "statements": 100
       },
       "./src/index.tsx": {
-        "branches": 75,
-        "functions": 80,
-        "lines": 85,
-        "statements": 85
+        "branches": 90,
+        "functions": 90,
+        "lines": 90,
+        "statements": 90
       }
     }
   },
