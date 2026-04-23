@@ -1,4 +1,4 @@
 [tools]
-node = "18"
+node = "24"
 java = "17"
 ruby = "3.3"
