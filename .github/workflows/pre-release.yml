@@ -28,7 +28,7 @@ jobs:
       id-token: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -80,7 +80,7 @@ jobs:
           fi
 
           echo "version=${PRE_VERSION}" >> $GITHUB_OUTPUT
-          echo "📦 Will create pre-release version: ${PRE_VERSION}"
+          echo "Will create pre-release version: ${PRE_VERSION}"
 
       - name: Update version and changelog
         run: |
@@ -96,7 +96,7 @@ jobs:
           git push origin "v${{ steps.version.outputs.version }}"
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: v${{ steps.version.outputs.version }} (${{ inputs.type }})
@@ -107,17 +107,17 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node for NPM
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '18.x'
+          node-version-file: .nvmrc
           registry-url: 'https://registry.npmjs.org'
 
       - name: Publish to NPM
         run: |
           npm publish --access public --tag ${{ inputs.type }}
-          echo "✅ Published pre-release version ${{ steps.version.outputs.version }} to NPM with tag '${{ inputs.type }}'"
-          echo "📦 View on NPM: https://www.npmjs.com/package/@azizuysal/wallet-kit"
+          echo "Published pre-release version ${{ steps.version.outputs.version }} to NPM with tag '${{ inputs.type }}'"
+          echo "View on NPM: https://www.npmjs.com/package/@azizuysal/wallet-kit"
           echo ""
-          echo "📥 Install with: npm install @azizuysal/wallet-kit@${{ inputs.type }}"
+          echo "Install with: npm install @azizuysal/wallet-kit@${{ inputs.type }}"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

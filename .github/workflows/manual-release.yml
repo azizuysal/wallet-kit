@@ -31,7 +31,7 @@ jobs:
       id-token: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -67,7 +67,7 @@ jobs:
 
       - name: Create GitHub Release
         if: ${{ !inputs.dry-run }}
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: v${{ inputs.version }}
           generate_release_notes: true
@@ -77,17 +77,17 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node for NPM
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '18.x'
+          node-version-file: .nvmrc
           registry-url: 'https://registry.npmjs.org'
 
       - name: Dry Run - Show what would be published
         if: ${{ inputs.dry-run }}
         run: |
-          echo "🔍 Dry Run Mode - No actual publishing will occur"
-          echo "📦 Would publish version: ${{ inputs.version }}"
-          echo "🏷️ Would use NPM tag: ${{ inputs.npm-tag }}"
+          echo "Dry Run Mode - No actual publishing will occur"
+          echo "Would publish version: ${{ inputs.version }}"
+          echo "Would use NPM tag: ${{ inputs.npm-tag }}"
           echo ""
           echo "Files that would be included:"
           npm pack --dry-run
@@ -98,7 +98,7 @@ jobs:
         if: ${{ !inputs.dry-run }}
         run: |
           npm publish --access public --tag ${{ inputs.npm-tag }}
-          echo "✅ Published version ${{ inputs.version }} to NPM with tag '${{ inputs.npm-tag }}'"
-          echo "📦 View on NPM: https://www.npmjs.com/package/@azizuysal/wallet-kit"
+          echo "Published version ${{ inputs.version }} to NPM with tag '${{ inputs.npm-tag }}'"
+          echo "View on NPM: https://www.npmjs.com/package/@azizuysal/wallet-kit"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
