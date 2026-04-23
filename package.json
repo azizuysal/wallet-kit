@@ -190,7 +190,7 @@
   },
   "release-it": {
     "hooks": {
-      "after:bump": "yarn prettier --write package.json CHANGELOG.md && git add package.json CHANGELOG.md"
+      "before:git:release": "yarn prettier --write package.json CHANGELOG.md && git add package.json CHANGELOG.md"
     },
     "git": {
       "commitMessage": "chore: release ${version}",
