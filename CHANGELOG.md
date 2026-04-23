@@ -2,6 +2,50 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## 1.1.0 (2026-04-23)
+
+- chore: clean up snyk policy and add release-it prettier hook ([664cdb4](https://github.com/azizuysal/wallet-kit/commit/664cdb4))
+- chore: configure Snyk to also ignore Ruby dependency updates in example app ([0f6c8e2](https://github.com/azizuysal/wallet-kit/commit/0f6c8e2))
+- chore: configure Snyk to ignore React Native updates ([803a992](https://github.com/azizuysal/wallet-kit/commit/803a992))
+- chore: move release-it prettier hook to before:git:release ([a7cfa24](https://github.com/azizuysal/wallet-kit/commit/a7cfa24))
+- chore: restage prettier-formatted files in release-it after:bump hook ([2094617](https://github.com/azizuysal/wallet-kit/commit/2094617))
+- chore: simplify release-it configuration for proper changelog generation ([7ac0d5e](https://github.com/azizuysal/wallet-kit/commit/7ac0d5e))
+- chore: update release-it and changelog plugin to v18/v10 for compatibility ([5be4385](https://github.com/azizuysal/wallet-kit/commit/5be4385))
+- chore: update release-it configuration ([940e1b4](https://github.com/azizuysal/wallet-kit/commit/940e1b4))
+- chore: update Snyk config to exclude CLI scripts and tests ([d52c7b7](https://github.com/azizuysal/wallet-kit/commit/d52c7b7))
+- chore: upgrade example app to React Native 0.77.3 ([f9a4825](https://github.com/azizuysal/wallet-kit/commit/f9a4825))
+- chore: upgrade node to 24 via mise ([c6ee5a6](https://github.com/azizuysal/wallet-kit/commit/c6ee5a6))
+- ci: revert sonarqube-scan-action pin from v4 to v7 ([dfbf6a7](https://github.com/azizuysal/wallet-kit/commit/dfbf6a7))
+- ci: upgrade github actions and fix sonarcloud config ([a0480d5](https://github.com/azizuysal/wallet-kit/commit/a0480d5))
+- fix: phase 1 correctness, validation, and docs refresh ([62b9c8b](https://github.com/azizuysal/wallet-kit/commit/62b9c8b))
+- fix: update license-checker to handle compound SPDX expressions ([6f39384](https://github.com/azizuysal/wallet-kit/commit/6f39384))
+- fix: update Ruby dependencies to address rexml security vulnerability ([c3de32f](https://github.com/azizuysal/wallet-kit/commit/c3de32f))
+- docs: add v1.0.0 release notes to CHANGELOG ([ae22393](https://github.com/azizuysal/wallet-kit/commit/ae22393))
+- docs: fix v1.0.0 release date in CHANGELOG ([e457a8b](https://github.com/azizuysal/wallet-kit/commit/e457a8b))
+- docs: update README badges ([358462c](https://github.com/azizuysal/wallet-kit/commit/358462c))
+
+## 1.1.0 (2026-04-23)
+
+- chore: clean up snyk policy and add release-it prettier hook ([664cdb4](https://github.com/azizuysal/wallet-kit/commit/664cdb4))
+- chore: configure Snyk to also ignore Ruby dependency updates in example app ([0f6c8e2](https://github.com/azizuysal/wallet-kit/commit/0f6c8e2))
+- chore: configure Snyk to ignore React Native updates ([803a992](https://github.com/azizuysal/wallet-kit/commit/803a992))
+- chore: move release-it prettier hook to before:git:release ([a7cfa24](https://github.com/azizuysal/wallet-kit/commit/a7cfa24))
+- chore: restage prettier-formatted files in release-it after:bump hook ([2094617](https://github.com/azizuysal/wallet-kit/commit/2094617))
+- chore: simplify release-it configuration for proper changelog generation ([7ac0d5e](https://github.com/azizuysal/wallet-kit/commit/7ac0d5e))
+- chore: update release-it and changelog plugin to v18/v10 for compatibility ([5be4385](https://github.com/azizuysal/wallet-kit/commit/5be4385))
+- chore: update release-it configuration ([940e1b4](https://github.com/azizuysal/wallet-kit/commit/940e1b4))
+- chore: update Snyk config to exclude CLI scripts and tests ([d52c7b7](https://github.com/azizuysal/wallet-kit/commit/d52c7b7))
+- chore: upgrade example app to React Native 0.77.3 ([f9a4825](https://github.com/azizuysal/wallet-kit/commit/f9a4825))
+- chore: upgrade node to 24 via mise ([c6ee5a6](https://github.com/azizuysal/wallet-kit/commit/c6ee5a6))
+- ci: revert sonarqube-scan-action pin from v4 to v7 ([dfbf6a7](https://github.com/azizuysal/wallet-kit/commit/dfbf6a7))
+- ci: upgrade github actions and fix sonarcloud config ([a0480d5](https://github.com/azizuysal/wallet-kit/commit/a0480d5))
+- fix: phase 1 correctness, validation, and docs refresh ([62b9c8b](https://github.com/azizuysal/wallet-kit/commit/62b9c8b))
+- fix: update license-checker to handle compound SPDX expressions ([6f39384](https://github.com/azizuysal/wallet-kit/commit/6f39384))
+- fix: update Ruby dependencies to address rexml security vulnerability ([c3de32f](https://github.com/azizuysal/wallet-kit/commit/c3de32f))
+- docs: add v1.0.0 release notes to CHANGELOG ([ae22393](https://github.com/azizuysal/wallet-kit/commit/ae22393))
+- docs: fix v1.0.0 release date in CHANGELOG ([e457a8b](https://github.com/azizuysal/wallet-kit/commit/e457a8b))
+- docs: update README badges ([358462c](https://github.com/azizuysal/wallet-kit/commit/358462c))
+
 ## [Unreleased]
 
 ### Bug Fixes
