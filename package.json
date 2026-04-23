@@ -189,6 +189,9 @@
     ]
   },
   "release-it": {
+    "hooks": {
+      "after:bump": "yarn prettier --write package.json CHANGELOG.md"
+    },
     "git": {
       "commitMessage": "chore: release ${version}",
       "tagName": "v${version}",
