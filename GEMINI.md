@@ -44,7 +44,6 @@ The following commands are essential for the development workflow:
 
 - **Running the Example App:**
   The `example` directory contains a fully functional React Native application that demonstrates the usage of the library.
-
   - To run on iOS:
     ```bash
     cd example && yarn ios

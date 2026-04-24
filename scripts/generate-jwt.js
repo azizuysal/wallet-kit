@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-/* eslint-env node */
-
 /**
  * JWT Generator for Google Wallet Testing
  *

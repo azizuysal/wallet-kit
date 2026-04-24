@@ -59,7 +59,6 @@ The workflow will automatically:
 Before releasing, ensure the NPM token is configured:
 
 1. Generate an NPM token:
-
    - Log in to [npmjs.com](https://www.npmjs.com/)
    - Go to Account Settings → Access Tokens
    - Generate a new "Automation" token
@@ -101,7 +100,6 @@ Before releasing 1.0.0:
    ```
 
 3. Verify everything works:
-
    - iOS pass addition
    - Android pass addition
    - TypeScript types

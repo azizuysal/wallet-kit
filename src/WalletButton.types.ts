@@ -66,7 +66,9 @@ export interface WalletButtonProps extends ViewProps {
  *
  * @internal
  */
-export interface NativeWalletButtonProps
-  extends Omit<WalletButtonProps, 'addPassButtonStyle'> {
+export interface NativeWalletButtonProps extends Omit<
+  WalletButtonProps,
+  'addPassButtonStyle'
+> {
   addPassButtonStyle?: number;
 }

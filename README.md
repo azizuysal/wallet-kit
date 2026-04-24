@@ -218,7 +218,6 @@ The native buttons follow platform-specific design guidelines:
 ### iOS Issues
 
 1. **"The package doesn't seem to be linked"**
-
    - Run `cd ios && pod install`
    - Rebuild the app
 
@@ -229,7 +228,6 @@ The native buttons follow platform-specific design guidelines:
 ### Android Issues
 
 1. **"Google Wallet is not available"**
-
    - Ensure Google Play Services is up to date
    - Check that the device has Google Wallet installed
    - Verify the meta-data is added to AndroidManifest.xml
