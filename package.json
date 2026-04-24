@@ -110,7 +110,6 @@
     "react-native-builder-bob": "^0.35.2",
     "react-test-renderer": "18.3.1",
     "release-it": "^18.0.0",
-    "turbo": "^1.10.7",
     "typedoc": "^0.28.11",
     "typedoc-plugin-markdown": "^4.8.1",
     "typescript": "^5.2.2",
@@ -120,8 +119,8 @@
     "@types/react": "^18.2.44"
   },
   "peerDependencies": {
-    "react": "*",
-    "react-native": "*"
+    "react": ">=19.1.0",
+    "react-native": ">=0.80.0"
   },
   "workspaces": [
     "example"
@@ -270,10 +269,5 @@
         }
       ]
     ]
-  },
-  "create-react-native-library": {
-    "type": "legacy-module",
-    "languages": "kotlin-objc",
-    "version": "0.45.5"
   }
 }

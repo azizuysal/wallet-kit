@@ -62,18 +62,30 @@ const createError = (code, message) => {
   return error;
 };
 
-jest.mock('react-native', () => ({
-  Platform: {
+jest.mock('react-native', () => {
+  const platform = {
     OS: 'ios',
-    select: jest.fn((obj) => obj.ios),
-  },
-  NativeModules: {
-    WalletKit: mockWalletKit,
-  },
-  NativeEventEmitter: jest.fn(() => new MockEventEmitter()),
-  requireNativeComponent: jest.fn((name) => name),
-  View: 'View',
-}));
+    select: jest.fn((obj) => {
+      if (obj[platform.OS] !== undefined) {
+        return obj[platform.OS];
+      }
+      if (obj.default !== undefined) {
+        return obj.default;
+      }
+      const values = Object.values(obj);
+      return values.length > 0 ? values[0] : undefined;
+    }),
+  };
+  return {
+    Platform: platform,
+    NativeModules: {
+      WalletKit: mockWalletKit,
+    },
+    NativeEventEmitter: jest.fn(() => new MockEventEmitter()),
+    requireNativeComponent: jest.fn((name) => name),
+    View: 'View',
+  };
+});
 
 // Make utilities globally available to all tests
 global.mockWalletKit = mockWalletKit;
