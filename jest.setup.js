@@ -83,6 +83,16 @@ jest.mock('react-native', () => {
     },
     NativeEventEmitter: jest.fn(() => new MockEventEmitter()),
     requireNativeComponent: jest.fn((name) => name),
+    TurboModuleRegistry: {
+      get: jest.fn((name) => (name === 'WalletKit' ? mockWalletKit : null)),
+      getEnforcing: jest.fn((name) => {
+        if (name === 'WalletKit') {
+          return mockWalletKit;
+        }
+        throw new Error(`TurboModule not found: ${name}`);
+      }),
+    },
+    codegenNativeComponent: jest.fn((name) => name),
     View: 'View',
   };
 });

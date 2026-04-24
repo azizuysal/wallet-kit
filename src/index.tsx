@@ -1,4 +1,6 @@
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
+import type { Spec as NativeWalletKitSpec } from './specs/NativeWalletKit';
+import NativeWalletKit from './specs/NativeWalletKit';
 import { WalletButton } from './WalletButton';
 import { WalletButtonStyle } from './WalletButton.types';
 
@@ -8,16 +10,18 @@ const LINKING_ERROR =
   '- You rebuilt the app after installing the package\n' +
   '- You are not using Expo Go\n';
 
-const WalletKit = NativeModules.WalletKit
-  ? NativeModules.WalletKit
-  : new Proxy(
-      {},
-      {
-        get() {
-          throw new Error(LINKING_ERROR);
-        },
-      }
-    );
+// Prefer the TurboModule resolved via the Codegen spec (new arch). Fall back
+// to the bridge-era registration on NativeModules for RN 0.80/0.81 consumers
+// still running the old architecture. If neither is present the package is
+// not linked correctly; a Proxy surfaces LINKING_ERROR on first access.
+const WalletKit: NativeWalletKitSpec =
+  NativeWalletKit ??
+  (NativeModules.WalletKit as NativeWalletKitSpec | null) ??
+  (new Proxy({} as NativeWalletKitSpec, {
+    get(): never {
+      throw new Error(LINKING_ERROR);
+    },
+  }) as NativeWalletKitSpec);
 
 /**
  * Error codes that can be returned by wallet operations.
@@ -65,13 +69,7 @@ const walletError = (code: WalletErrorCode, message: string): WalletError => {
   return error;
 };
 
-interface NativeWalletModule {
-  canAddPasses(): Promise<boolean>;
-  addPass(passData: string): Promise<boolean>;
-  addPasses(passDataArray: string[]): Promise<boolean>;
-}
-
-const nativeModule = WalletKit as NativeWalletModule;
+const nativeModule = WalletKit;
 
 /**
  * Utility function to check if a string is valid base64url and can be decoded.

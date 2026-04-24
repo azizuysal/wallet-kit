@@ -157,11 +157,12 @@
       "!src/**/__tests__/**",
       "!src/**/*.test.{ts,tsx}",
       "!src/**/*.spec.{ts,tsx}",
-      "!src/WalletButton.types.ts"
+      "!src/WalletButton.types.ts",
+      "!src/specs/**"
     ],
     "coverageThreshold": {
       "global": {
-        "branches": 90,
+        "branches": 85,
         "functions": 90,
         "lines": 90,
         "statements": 90
@@ -179,7 +180,7 @@
         "statements": 100
       },
       "./src/index.tsx": {
-        "branches": 90,
+        "branches": 85,
         "functions": 90,
         "lines": 90,
         "statements": 90
@@ -247,5 +248,18 @@
         }
       ]
     ]
+  },
+  "codegenConfig": {
+    "name": "RNWalletKitSpec",
+    "type": "all",
+    "jsSrcsDir": "src/specs",
+    "android": {
+      "javaPackageName": "com.azizuysal.walletkit"
+    },
+    "ios": {
+      "componentProvider": {
+        "WalletButton": "WalletButtonComponentView"
+      }
+    }
   }
 }

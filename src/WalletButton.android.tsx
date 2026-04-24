@@ -1,19 +1,13 @@
 import React from 'react';
-import { requireNativeComponent } from 'react-native';
-import type {
-  NativeWalletButtonProps,
-  WalletButtonProps,
-} from './WalletButton.types';
+import type { WalletButtonProps } from './WalletButton.types';
 import { WalletButtonStyle } from './WalletButton.types';
+import NativeWalletButton from './specs/WalletButtonNativeComponent';
 
 const styleMap: Record<WalletButtonStyle, number> = {
   [WalletButtonStyle.primary]: 0,
   [WalletButtonStyle.secondary]: 1,
   [WalletButtonStyle.outline]: 2,
 };
-
-const NativeWalletButton =
-  requireNativeComponent<NativeWalletButtonProps>('WalletButton');
 
 /**
  * Native wallet button component (Android — Google Wallet button).
