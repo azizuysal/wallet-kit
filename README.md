@@ -23,7 +23,7 @@ A React Native library for integrating with Apple Wallet (iOS) and Google Wallet
 - **Native UI components** - Platform-specific "Add to Wallet" buttons (`PKAddPassButton` on iOS, the official Google Wallet button on Android) with localized branding.
 - **Event handling** - Subscribe to `AddPassCompleted` to learn the outcome of an add-pass flow.
 - **Multiple passes on iOS** - `addPasses` presents multiple `.pkpass` files in a single Apple Wallet sheet. Google Wallet accepts a single combined JWT per call; see [Platform Differences](#platform-differences).
-- **Stable error taxonomy** - A single set of error codes (`INVALID_PASS`, `ERR_WALLET_NOT_AVAILABLE`, `ERR_WALLET_UNKNOWN`, etc.) shared across platforms; see [Error Codes](#error-codes). User cancellation is reported through the `AddPassCompleted` event, not as a Promise rejection.
+- **Stable error taxonomy** - A single set of error codes (`INVALID_PASS`, `ERR_WALLET_NOT_AVAILABLE`, `ERR_WALLET_UNKNOWN`, etc.) shared across platforms; see [Error Codes](#error-codes). User cancellation is reported by resolving `addPass`/`addPasses` with `false`, not by rejecting.
 
 ## Documentation
 
@@ -41,9 +41,20 @@ yarn add @azizuysal/wallet-kit
 
 ## Compatibility
 
-The 1.x series is a stabilization line focused on correctness, error handling, and input validation. It does not publish a formal React Native compatibility matrix — your React Native version determines the iOS and Android floors (see [iOS Setup](#ios-setup) and [Android Setup](#android-setup)).
+### Supported React Native versions (2.x)
 
-The 2.x series will introduce a tested compatibility matrix, published iOS/Android floors, a narrower `peerDependencies` range, and New Architecture support via TurboModule/Fabric. If you need a specific React Native version guarantee, pin to a 2.x release when it ships.
+`@azizuysal/wallet-kit@^2` supports the last six React Native minors. Each cell in the matrix is exercised by the CI build matrix (iOS + Android, new arch by default, old-arch opt-out covered on 0.80/0.81).
+
+| React Native | iOS floor | Android `minSdk` / `compileSdk` / `targetSdk` | Kotlin | Arch                                    |
+| ------------ | --------- | --------------------------------------------- | ------ | --------------------------------------- |
+| 0.85.x       | 15.1      | 24 / 36 / 36                                  | 2.1.20 | New (required)                          |
+| 0.84.x       | 15.1      | 24 / 36 / 36                                  | 2.1.20 | New (required)                          |
+| 0.83.x       | 15.1      | 24 / 36 / 36                                  | 2.1.20 | New (required)                          |
+| 0.82.x       | 15.1      | 24 / 36 / 36                                  | 2.1.20 | New (required)                          |
+| 0.81.x       | 15.1      | 24 / 36 / 36                                  | 2.1.20 | New default, old arch opt-out supported |
+| 0.80.x       | 15.1      | 24 / 35 / 35                                  | 2.1.20 | New default, old arch opt-out supported |
+
+React Native versions below 0.80 are not supported in 2.x. If you are on an older RN, pin to `@azizuysal/wallet-kit@^1`, which was the stabilization line focused on correctness fixes without the support-window tightening.
 
 ### iOS Setup
 
@@ -57,7 +68,7 @@ The 2.x series will introduce a tested compatibility matrix, published iOS/Andro
 
 ### Android Setup
 
-1. Ensure your app's `minSdkVersion` is compatible with the React Native version you use (React Native 0.74 requires `minSdkVersion=23`, 0.76+ requires `minSdkVersion=24`). `@azizuysal/wallet-kit` inherits the floor from your React Native version.
+1. Ensure your app's `minSdkVersion` is at least `24`. `@azizuysal/wallet-kit@^2` pins `minSdk=24` to match the React Native 0.80+ floor.
 2. Add the following to your app's `AndroidManifest.xml`:
 
 ```xml
@@ -91,8 +102,12 @@ if (canAddPasses) {
 try {
   // For iOS: pass base64-encoded .pkpass file
   // For Android: pass JWT token string
-  await WalletKit.addPass(passData);
-  console.log('Pass addition UI shown');
+  const success = await WalletKit.addPass(passData);
+  if (success) {
+    console.log('Pass was added to the wallet');
+  } else {
+    console.log('User cancelled or the pass was already in the wallet');
+  }
 } catch (error) {
   const walletError = error as WalletError;
   if (walletError.code === 'INVALID_PASS') {
@@ -101,12 +116,13 @@ try {
     console.error('Failed to present wallet sheet:', walletError);
   }
 }
-// User cancellation is reported via the AddPassCompleted event, not via a
-// rejection. See the "Listening to Events" section below.
 
 // Add multiple passes (iOS accepts any count; Android requires a single combined JWT)
 try {
-  await WalletKit.addPasses([pass1, pass2, pass3]);
+  const success = await WalletKit.addPasses([pass1, pass2, pass3]);
+  if (success) {
+    console.log('All passes were added to the wallet');
+  }
 } catch (error) {
   const walletError = error as WalletError;
   if (walletError.code === 'ERR_WALLET_MULTIPLE_NOT_SUPPORTED') {
@@ -212,6 +228,68 @@ The native buttons follow platform-specific design guidelines:
 
 - **iOS**: Uses Apple's PKAddPassButton
 - **Android**: Uses official Google Wallet button layouts
+
+## Migrating from 1.x to 2.x
+
+The 2.0 release narrows the supported React Native range and changes the shape of the add-pass API. The list below covers every breaking change and the mechanical fix for each.
+
+### `addPass` / `addPasses` return `Promise<boolean>`
+
+1.x resolved with `void` as soon as the wallet sheet was presented, and delivered the outcome on a separate `AddPassCompleted` event. 2.x resolves the promise with the outcome directly: `true` if every pass was newly added, `false` on cancel or if a pass was already in the library.
+
+```typescript
+// 1.x
+await WalletKit.addPass(passData);
+emitter.addListener('AddPassCompleted', (success) => {
+  /* handle outcome */
+});
+
+// 2.x
+const success = await WalletKit.addPass(passData);
+```
+
+The `AddPassCompleted` event still fires as a secondary notification channel for multi-listener scenarios; you do not have to migrate listeners. The Promise return value is the primary API in 2.x.
+
+### `ERR_WALLET_CANCELLED` was removed
+
+Neither platform ever rejected with this code in 1.x; it was a type-system phantom. 2.x removes it. If you had a `catch` branch keyed on `ERR_WALLET_CANCELLED`, delete it — cancellation now resolves the promise with `false`.
+
+```typescript
+// 1.x — dead branch, never triggered
+try {
+  await WalletKit.addPass(passData);
+} catch (error) {
+  if (error.code === 'ERR_WALLET_CANCELLED') {
+    /* never reached */
+  }
+}
+
+// 2.x
+const success = await WalletKit.addPass(passData);
+if (!success) {
+  /* cancelled or already-present */
+}
+```
+
+### `ERR_WALLET_IN_PROGRESS` is now cross-platform
+
+In 1.x this code was Android-only. 2.x also emits it on iOS when a concurrent `addPass`/`addPasses` is issued while a previous call is still awaiting the delegate callback. If your iOS code previously relied on fire-and-forget concurrent calls, serialize them instead.
+
+### Peer dependency range tightened
+
+`peerDependencies` changed from `"*"` to `">=0.80.0"` for `react-native` and `">=19.1.0"` for `react`. If your app is on React Native below 0.80, stay on `@azizuysal/wallet-kit@^1`.
+
+### Android minSdk floor raised
+
+`minSdkVersion` must be at least `24` in your app (`android/build.gradle`). This was already required transitively by RN 0.76+; 2.x makes it explicit.
+
+### iOS platform floor raised
+
+`wallet-kit.podspec` declares `:ios => "15.1"`. Your app's iOS deployment target must be `15.1` or higher. This matches the React Native 0.80–0.85 floor.
+
+### New Architecture
+
+The library is now a TurboModule (JS-to-native) and a Fabric component (`WalletButton`). On RN 0.82+ (New Arch only) it runs natively. On RN 0.80/0.81 with old-arch opted in, the bridge code paths are retained behind compile-time flags and continue to work. No consumer action required.
 
 ## Troubleshooting
 

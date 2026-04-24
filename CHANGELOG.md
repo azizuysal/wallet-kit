@@ -2,51 +2,37 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## 1.1.0 (2026-04-23)
-
-- chore: clean up snyk policy and add release-it prettier hook ([664cdb4](https://github.com/azizuysal/wallet-kit/commit/664cdb4))
-- chore: configure Snyk to also ignore Ruby dependency updates in example app ([0f6c8e2](https://github.com/azizuysal/wallet-kit/commit/0f6c8e2))
-- chore: configure Snyk to ignore React Native updates ([803a992](https://github.com/azizuysal/wallet-kit/commit/803a992))
-- chore: move release-it prettier hook to before:git:release ([a7cfa24](https://github.com/azizuysal/wallet-kit/commit/a7cfa24))
-- chore: restage prettier-formatted files in release-it after:bump hook ([2094617](https://github.com/azizuysal/wallet-kit/commit/2094617))
-- chore: simplify release-it configuration for proper changelog generation ([7ac0d5e](https://github.com/azizuysal/wallet-kit/commit/7ac0d5e))
-- chore: update release-it and changelog plugin to v18/v10 for compatibility ([5be4385](https://github.com/azizuysal/wallet-kit/commit/5be4385))
-- chore: update release-it configuration ([940e1b4](https://github.com/azizuysal/wallet-kit/commit/940e1b4))
-- chore: update Snyk config to exclude CLI scripts and tests ([d52c7b7](https://github.com/azizuysal/wallet-kit/commit/d52c7b7))
-- chore: upgrade example app to React Native 0.77.3 ([f9a4825](https://github.com/azizuysal/wallet-kit/commit/f9a4825))
-- chore: upgrade node to 24 via mise ([c6ee5a6](https://github.com/azizuysal/wallet-kit/commit/c6ee5a6))
-- ci: revert sonarqube-scan-action pin from v4 to v7 ([dfbf6a7](https://github.com/azizuysal/wallet-kit/commit/dfbf6a7))
-- ci: upgrade github actions and fix sonarcloud config ([a0480d5](https://github.com/azizuysal/wallet-kit/commit/a0480d5))
-- fix: phase 1 correctness, validation, and docs refresh ([62b9c8b](https://github.com/azizuysal/wallet-kit/commit/62b9c8b))
-- fix: update license-checker to handle compound SPDX expressions ([6f39384](https://github.com/azizuysal/wallet-kit/commit/6f39384))
-- fix: update Ruby dependencies to address rexml security vulnerability ([c3de32f](https://github.com/azizuysal/wallet-kit/commit/c3de32f))
-- docs: add v1.0.0 release notes to CHANGELOG ([ae22393](https://github.com/azizuysal/wallet-kit/commit/ae22393))
-- docs: fix v1.0.0 release date in CHANGELOG ([e457a8b](https://github.com/azizuysal/wallet-kit/commit/e457a8b))
-- docs: update README badges ([358462c](https://github.com/azizuysal/wallet-kit/commit/358462c))
-
-## 1.1.0 (2026-04-23)
-
-- chore: clean up snyk policy and add release-it prettier hook ([664cdb4](https://github.com/azizuysal/wallet-kit/commit/664cdb4))
-- chore: configure Snyk to also ignore Ruby dependency updates in example app ([0f6c8e2](https://github.com/azizuysal/wallet-kit/commit/0f6c8e2))
-- chore: configure Snyk to ignore React Native updates ([803a992](https://github.com/azizuysal/wallet-kit/commit/803a992))
-- chore: move release-it prettier hook to before:git:release ([a7cfa24](https://github.com/azizuysal/wallet-kit/commit/a7cfa24))
-- chore: restage prettier-formatted files in release-it after:bump hook ([2094617](https://github.com/azizuysal/wallet-kit/commit/2094617))
-- chore: simplify release-it configuration for proper changelog generation ([7ac0d5e](https://github.com/azizuysal/wallet-kit/commit/7ac0d5e))
-- chore: update release-it and changelog plugin to v18/v10 for compatibility ([5be4385](https://github.com/azizuysal/wallet-kit/commit/5be4385))
-- chore: update release-it configuration ([940e1b4](https://github.com/azizuysal/wallet-kit/commit/940e1b4))
-- chore: update Snyk config to exclude CLI scripts and tests ([d52c7b7](https://github.com/azizuysal/wallet-kit/commit/d52c7b7))
-- chore: upgrade example app to React Native 0.77.3 ([f9a4825](https://github.com/azizuysal/wallet-kit/commit/f9a4825))
-- chore: upgrade node to 24 via mise ([c6ee5a6](https://github.com/azizuysal/wallet-kit/commit/c6ee5a6))
-- ci: revert sonarqube-scan-action pin from v4 to v7 ([dfbf6a7](https://github.com/azizuysal/wallet-kit/commit/dfbf6a7))
-- ci: upgrade github actions and fix sonarcloud config ([a0480d5](https://github.com/azizuysal/wallet-kit/commit/a0480d5))
-- fix: phase 1 correctness, validation, and docs refresh ([62b9c8b](https://github.com/azizuysal/wallet-kit/commit/62b9c8b))
-- fix: update license-checker to handle compound SPDX expressions ([6f39384](https://github.com/azizuysal/wallet-kit/commit/6f39384))
-- fix: update Ruby dependencies to address rexml security vulnerability ([c3de32f](https://github.com/azizuysal/wallet-kit/commit/c3de32f))
-- docs: add v1.0.0 release notes to CHANGELOG ([ae22393](https://github.com/azizuysal/wallet-kit/commit/ae22393))
-- docs: fix v1.0.0 release date in CHANGELOG ([e457a8b](https://github.com/azizuysal/wallet-kit/commit/e457a8b))
-- docs: update README badges ([358462c](https://github.com/azizuysal/wallet-kit/commit/358462c))
-
 ## [Unreleased]
+
+### Breaking Changes
+
+- **API**: `addPass` and `addPasses` now return `Promise<boolean>` that resolves with the add outcome directly (`true` when every pass was newly added, `false` on cancel or when a pass was already in the wallet). The 1.x versions returned `Promise<void>` and delivered the outcome only via the `AddPassCompleted` event. The event is retained as a secondary channel; the Promise return value is the primary API.
+  - Migration: `await WalletKit.addPass(data)` can now be used directly to get the outcome. Existing `AddPassCompleted` listeners continue to fire.
+- **Peer dependencies**: `react-native` tightened from `*` to `>=0.80.0`; `react` tightened from `*` to `>=19.1.0`. Consumers on RN `< 0.80` must stay on `@azizuysal/wallet-kit@^1`.
+- **iOS platform floor**: `wallet-kit.podspec` raised from `ios 11.0` to `ios 15.1` (matches the RN 0.80–0.85 floor).
+- **Android build floor**: `minSdkVersion` raised from 21 to 24 (RN 0.76+ floor). `compileSdk`/`targetSdk` moved to 36. `kotlinVersion` moved to 2.1.20. AGP moved to 8.12. Java source/target moved to 17.
+- **iOS**: `addPass`/`addPasses` now reject concurrent in-flight calls with `ERR_WALLET_IN_PROGRESS` (previously an iOS-specific latent bug — Phase 1 had this guard on Android only).
+
+### Features
+
+- New TurboModule + Fabric Codegen spec so the library runs natively on the New Architecture from RN 0.82+ without going through the interop layer. Bridge-era native code is retained behind `#ifdef RCT_NEW_ARCH_ENABLED` for 0.80/0.81 old-arch consumers.
+- Compatibility matrix published in README: tested against RN 0.80, 0.81, 0.82, 0.83, 0.84, 0.85 (per the CI matrix added in P2-c).
+
+### Chores
+
+- Upgraded the in-repo example app to React Native 0.85.2, React 19.2.5.
+- Upgraded library devDependencies to match: `@react-native/eslint-config` 0.85.2, `@react-native/jest-preset` 0.85.2, `@react-native/babel-preset` 0.85.2, `@react-native-community/cli` 20.1.3, ESLint 9 (flat config), TypeScript 5.9, Commitlint 20, Prettier 3.8.
+- Removed vestigial `turbo` devDependency and `turbo.json`.
+- Removed the `create-react-native-library.type: "legacy-module"` package.json block.
+- Split `ios/UIViewController+WalletKit.h`'s inline `@implementation` into a proper `.h` / `.mm` pair to avoid duplicate-symbol risk from the Codegen work.
+- Migrated `src/__tests__/WalletButton.test.tsx` from `react-test-renderer` to `@testing-library/react-native` (React 19 compat).
+- Upgraded all GitHub Actions and added a CI matrix covering 6 RN versions × 2 OS.
+
+### Removed
+
+- Bridge-era-only code paths that assumed `newArchEnabled=false` was always possible. Bridge code is still present on the iOS/Android sides behind `#ifdef` / `newArchEnabled` checks, but it is no longer the default build path.
+
+## [1.1.0] - 2026-04-23
 
 ### Bug Fixes
 
@@ -155,7 +141,8 @@ All notable changes to this project will be documented in this file. See [standa
 - Event handling system
 - Error handling with specific error codes
 
-[Unreleased]: https://github.com/azizuysal/wallet-kit/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/azizuysal/wallet-kit/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/azizuysal/wallet-kit/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/azizuysal/wallet-kit/compare/v0.2.1...v1.0.0
 [0.2.1]: https://github.com/azizuysal/wallet-kit/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/azizuysal/wallet-kit/compare/v0.1.0...v0.2.0
