@@ -119,16 +119,21 @@ describe('WalletKit', () => {
   });
 
   describe('addPass', () => {
-    it('forwards a valid pkpass string to the native layer unchanged', async () => {
-      mockWalletKit.addPass.mockResolvedValue(undefined);
-      await WalletKit.addPass(validPkpass);
+    it('forwards a valid pkpass string to the native layer and resolves with the outcome', async () => {
+      mockWalletKit.addPass.mockResolvedValue(true);
+      await expect(WalletKit.addPass(validPkpass)).resolves.toBe(true);
       expect(mockWalletKit.addPass).toHaveBeenCalledWith(validPkpass);
     });
 
-    it('forwards a valid JWT string to the native layer unchanged', async () => {
-      mockWalletKit.addPass.mockResolvedValue(undefined);
-      await WalletKit.addPass(validJwt);
+    it('forwards a valid JWT string to the native layer and resolves with the outcome', async () => {
+      mockWalletKit.addPass.mockResolvedValue(true);
+      await expect(WalletKit.addPass(validJwt)).resolves.toBe(true);
       expect(mockWalletKit.addPass).toHaveBeenCalledWith(validJwt);
+    });
+
+    it('resolves with false when the user cancels the add flow', async () => {
+      mockWalletKit.addPass.mockResolvedValue(false);
+      await expect(WalletKit.addPass(validPkpass)).resolves.toBe(false);
     });
 
     it('rejects empty strings with INVALID_PASS before touching native', async () => {
@@ -170,20 +175,34 @@ describe('WalletKit', () => {
         code: 'UNSUPPORTED_VERSION',
       });
     });
+
+    it('propagates native ERR_WALLET_IN_PROGRESS', async () => {
+      mockWalletKit.addPass.mockRejectedValue(
+        createError(
+          'ERR_WALLET_IN_PROGRESS',
+          'Another add-pass call is already in flight'
+        )
+      );
+      await expect(WalletKit.addPass(validPkpass)).rejects.toMatchObject({
+        code: 'ERR_WALLET_IN_PROGRESS',
+      });
+    });
   });
 
   describe('addPasses', () => {
-    it('forwards a single-pass array to the native layer on iOS', async () => {
+    it('forwards a single-pass array to the native layer on iOS and resolves with the outcome', async () => {
       Platform.OS = 'ios';
-      mockWalletKit.addPasses.mockResolvedValue(undefined);
-      await WalletKit.addPasses([validPkpass]);
+      mockWalletKit.addPasses.mockResolvedValue(true);
+      await expect(WalletKit.addPasses([validPkpass])).resolves.toBe(true);
       expect(mockWalletKit.addPasses).toHaveBeenCalledWith([validPkpass]);
     });
 
-    it('forwards multiple passes to the native layer on iOS', async () => {
+    it('forwards multiple passes to the native layer on iOS and resolves with the outcome', async () => {
       Platform.OS = 'ios';
-      mockWalletKit.addPasses.mockResolvedValue(undefined);
-      await WalletKit.addPasses([validPkpass, validPkpass, validPkpass]);
+      mockWalletKit.addPasses.mockResolvedValue(true);
+      await expect(
+        WalletKit.addPasses([validPkpass, validPkpass, validPkpass])
+      ).resolves.toBe(true);
       expect(mockWalletKit.addPasses).toHaveBeenCalledWith([
         validPkpass,
         validPkpass,
@@ -191,11 +210,19 @@ describe('WalletKit', () => {
       ]);
     });
 
-    it('forwards a single-JWT array on Android', async () => {
+    it('forwards a single-JWT array on Android and resolves with the outcome', async () => {
       Platform.OS = 'android';
-      mockWalletKit.addPasses.mockResolvedValue(undefined);
-      await WalletKit.addPasses([validJwt]);
+      mockWalletKit.addPasses.mockResolvedValue(true);
+      await expect(WalletKit.addPasses([validJwt])).resolves.toBe(true);
       expect(mockWalletKit.addPasses).toHaveBeenCalledWith([validJwt]);
+    });
+
+    it('resolves with false on iOS when user cancels with multiple passes queued', async () => {
+      Platform.OS = 'ios';
+      mockWalletKit.addPasses.mockResolvedValue(false);
+      await expect(
+        WalletKit.addPasses([validPkpass, validPkpass])
+      ).resolves.toBe(false);
     });
 
     it('rejects multi-JWT calls on Android with ERR_WALLET_MULTIPLE_NOT_SUPPORTED and never hits native', async () => {
@@ -298,17 +325,17 @@ describe('WalletKit', () => {
   });
 
   describe('Integration flow', () => {
-    it('completes the canAdd → addPass → AddPassCompleted sequence', async () => {
+    it('completes the canAdd → addPass sequence with a boolean outcome, and the event emitter still fires as secondary channel', async () => {
       Platform.OS = 'ios';
       mockWalletKit.canAddPasses.mockResolvedValue(true);
-      mockWalletKit.addPass.mockResolvedValue(undefined);
+      mockWalletKit.addPass.mockResolvedValue(true);
 
       const completion = jest.fn();
       const emitter = createWalletEventEmitter();
       emitter.addListener('AddPassCompleted', completion);
 
       await expect(WalletKit.canAddPasses()).resolves.toBe(true);
-      await expect(WalletKit.addPass(validPkpass)).resolves.toBeUndefined();
+      await expect(WalletKit.addPass(validPkpass)).resolves.toBe(true);
 
       mockEmitter.emit('AddPassCompleted', true);
       expect(completion).toHaveBeenCalledWith(true);
@@ -319,12 +346,12 @@ describe('WalletKit', () => {
         .mockRejectedValueOnce(
           createError('ERR_WALLET_UNKNOWN', 'Transient error')
         )
-        .mockResolvedValueOnce(undefined);
+        .mockResolvedValueOnce(true);
 
       await expect(WalletKit.addPass(validPkpass)).rejects.toMatchObject({
         code: 'ERR_WALLET_UNKNOWN',
       });
-      await expect(WalletKit.addPass(validPkpass)).resolves.toBeUndefined();
+      await expect(WalletKit.addPass(validPkpass)).resolves.toBe(true);
       expect(mockWalletKit.addPass).toHaveBeenCalledTimes(2);
     });
   });

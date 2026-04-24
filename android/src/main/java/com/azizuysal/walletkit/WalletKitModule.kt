@@ -200,11 +200,11 @@ class WalletKitModule(reactContext: ReactApplicationContext) :
 
     when (resultCode) {
       Activity.RESULT_OK -> {
-        promise.resolve(null)
+        promise.resolve(true)
         sendAddPassCompletedEvent(true)
       }
       Activity.RESULT_CANCELED -> {
-        promise.resolve(null)
+        promise.resolve(false)
         sendAddPassCompletedEvent(false)
       }
       else -> {

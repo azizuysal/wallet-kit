@@ -10,6 +10,8 @@
 }
 @property (nonatomic, strong) NSArray<PKPass *> *passes;
 @property (nonatomic, strong) NSArray<NSNumber *> *passesAlreadyInLibrary;
+@property (nonatomic, copy) RCTPromiseResolveBlock pendingResolve;
+@property (nonatomic, copy) RCTPromiseRejectBlock pendingReject;
 @end
 
 @implementation WalletKit
@@ -33,14 +35,17 @@ RCT_EXPORT_METHOD(canAddPasses:(RCTPromiseResolveBlock)resolve reject:(RCTPromis
 }
 
 RCT_EXPORT_METHOD(addPass:(NSString *)passData resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
+    if (![self claimPendingResolve:resolve reject:reject]) {
+        return;
+    }
+
     if (![passData isKindOfClass:[NSString class]] || passData.length == 0) {
-        reject(@"INVALID_PASS", @"Pass data must be a non-empty base64-encoded string", nil);
+        [self rejectPending:@"INVALID_PASS" message:@"Pass data must be a non-empty base64-encoded string" error:nil];
         return;
     }
 
     PKPass *pass = [self buildPassFromBase64String:passData
-                                invalidDataMessage:@"Pass data is not valid base64"
-                                       rejectBlock:reject];
+                                invalidDataMessage:@"Pass data is not valid base64"];
     if (pass == nil) {
         return;
     }
@@ -48,12 +53,16 @@ RCT_EXPORT_METHOD(addPass:(NSString *)passData resolve:(RCTPromiseResolveBlock)r
     [self trackPasses:@[pass]];
 
     PKAddPassesViewController *vc = [[PKAddPassesViewController alloc] initWithPass:pass];
-    [self presentAddPassesViewController:vc resolve:resolve];
+    [self presentAddPassesViewController:vc];
 }
 
 RCT_EXPORT_METHOD(addPasses:(NSArray<NSString *> *)passDataArray resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
+    if (![self claimPendingResolve:resolve reject:reject]) {
+        return;
+    }
+
     if (![passDataArray isKindOfClass:[NSArray class]] || passDataArray.count == 0) {
-        reject(@"INVALID_PASS", @"Pass data array must be a non-empty array of pass strings", nil);
+        [self rejectPending:@"INVALID_PASS" message:@"Pass data array must be a non-empty array of pass strings" error:nil];
         return;
     }
 
@@ -62,14 +71,13 @@ RCT_EXPORT_METHOD(addPasses:(NSArray<NSString *> *)passDataArray resolve:(RCTPro
         id entry = passDataArray[index];
         if (![entry isKindOfClass:[NSString class]] || [(NSString *)entry length] == 0) {
             NSString *message = [NSString stringWithFormat:@"Pass data at index %lu must be a non-empty base64-encoded string", (unsigned long)index];
-            reject(@"INVALID_PASS", message, nil);
+            [self rejectPending:@"INVALID_PASS" message:message error:nil];
             return;
         }
 
         NSString *indexedMessage = [NSString stringWithFormat:@"Pass data at index %lu is not valid base64", (unsigned long)index];
         PKPass *pass = [self buildPassFromBase64String:(NSString *)entry
-                                              invalidDataMessage:indexedMessage
-                                                     rejectBlock:reject];
+                                              invalidDataMessage:indexedMessage];
         if (pass == nil) {
             return;
         }
@@ -80,31 +88,62 @@ RCT_EXPORT_METHOD(addPasses:(NSArray<NSString *> *)passDataArray resolve:(RCTPro
     [self trackPasses:passes];
 
     PKAddPassesViewController *vc = [[PKAddPassesViewController alloc] initWithPasses:passes];
-    [self presentAddPassesViewController:vc resolve:resolve];
+    [self presentAddPassesViewController:vc];
+}
+
+#pragma mark - Pending promise lifecycle
+
+- (BOOL)claimPendingResolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
+    if (self.pendingResolve != nil) {
+        reject(@"ERR_WALLET_IN_PROGRESS",
+               @"Another add-pass call is already in flight. Wait for it to resolve or reject before issuing another.",
+               nil);
+        return NO;
+    }
+    self.pendingResolve = resolve;
+    self.pendingReject = reject;
+    return YES;
+}
+
+- (void)rejectPending:(NSString *)code message:(NSString *)message error:(NSError *)error {
+    RCTPromiseRejectBlock reject = self.pendingReject;
+    self.pendingResolve = nil;
+    self.pendingReject = nil;
+    if (reject != nil) {
+        reject(code, message, error);
+    }
+}
+
+- (void)resolvePendingWithOutcome:(BOOL)allNewlyAdded {
+    RCTPromiseResolveBlock resolve = self.pendingResolve;
+    self.pendingResolve = nil;
+    self.pendingReject = nil;
+    if (resolve != nil) {
+        resolve(@(allNewlyAdded));
+    }
 }
 
 #pragma mark - Helpers
 
 - (PKPass *)buildPassFromBase64String:(NSString *)passData
-                   invalidDataMessage:(NSString *)invalidDataMessage
-                          rejectBlock:(RCTPromiseRejectBlock)reject {
+                   invalidDataMessage:(NSString *)invalidDataMessage {
     NSData *data = [[NSData alloc] initWithBase64EncodedString:passData
                                                        options:NSDataBase64DecodingIgnoreUnknownCharacters];
     if (data == nil) {
-        reject(@"INVALID_PASS", invalidDataMessage, nil);
+        [self rejectPending:@"INVALID_PASS" message:invalidDataMessage error:nil];
         return nil;
     }
 
     NSError *error = nil;
     PKPass *pass = [[PKPass alloc] initWithData:data error:&error];
     if (pass == nil || error != nil) {
-        [self rejectWithPKError:error rejectBlock:reject];
+        [self rejectPendingWithPKError:error];
         return nil;
     }
     return pass;
 }
 
-- (void)rejectWithPKError:(NSError *)error rejectBlock:(RCTPromiseRejectBlock)reject {
+- (void)rejectPendingWithPKError:(NSError *)error {
     NSString *errorCode = @"ERR_WALLET_UNKNOWN";
     NSString *errorMessage = @"Failed to create pass from data";
 
@@ -118,7 +157,7 @@ RCT_EXPORT_METHOD(addPasses:(NSArray<NSString *> *)passDataArray resolve:(RCTPro
         }
     }
 
-    reject(errorCode, errorMessage, error);
+    [self rejectPending:errorCode message:errorMessage error:error];
 }
 
 - (void)trackPasses:(NSArray<PKPass *> *)passes {
@@ -132,8 +171,7 @@ RCT_EXPORT_METHOD(addPasses:(NSArray<NSString *> *)passDataArray resolve:(RCTPro
     self.passesAlreadyInLibrary = [alreadyInLibrary copy];
 }
 
-- (void)presentAddPassesViewController:(PKAddPassesViewController *)vc
-                               resolve:(RCTPromiseResolveBlock)resolve {
+- (void)presentAddPassesViewController:(PKAddPassesViewController *)vc {
     vc.delegate = self;
 
     dispatch_async(dispatch_get_main_queue(), ^{
@@ -144,7 +182,6 @@ RCT_EXPORT_METHOD(addPasses:(NSArray<NSString *> *)passDataArray resolve:(RCTPro
             if (@available(iOS 13.0, *)) {
                 vc.presentationController.delegate = self;
             }
-            resolve(nil);
         }];
     });
 }
@@ -160,8 +197,8 @@ RCT_EXPORT_METHOD(addPasses:(NSArray<NSString *> *)passDataArray resolve:(RCTPro
     }
 }
 
-- (void)emitCompletionAndClear {
-    if (self.passes == nil) {
+- (void)finishAndResolve {
+    if (self.passes == nil && self.pendingResolve == nil) {
         return;
     }
 
@@ -184,6 +221,8 @@ RCT_EXPORT_METHOD(addPasses:(NSArray<NSString *> *)passDataArray resolve:(RCTPro
         }
     }
 
+    [self resolvePendingWithOutcome:allNewlyAdded];
+
     if (hasListeners) {
         [self sendEventWithName:@"AddPassCompleted" body:@(allNewlyAdded)];
     }
@@ -194,14 +233,14 @@ RCT_EXPORT_METHOD(addPasses:(NSArray<NSString *> *)passDataArray resolve:(RCTPro
 - (void)addPassesViewControllerDidFinish:(PKAddPassesViewController *)controller {
     __weak WalletKit *weakSelf = self;
     [controller dismissViewControllerAnimated:YES completion:^{
-        [weakSelf emitCompletionAndClear];
+        [weakSelf finishAndResolve];
     }];
 }
 
 #pragma mark - UIAdaptivePresentationControllerDelegate
 
 - (void)presentationControllerDidDismiss:(UIPresentationController *)presentationController API_AVAILABLE(ios(13.0)) {
-    [self emitCompletionAndClear];
+    [self finishAndResolve];
 }
 
 @end

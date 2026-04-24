@@ -31,15 +31,15 @@ const WalletKit = NativeModules.WalletKit
  * - `ERR_WALLET_MULTIPLE_NOT_SUPPORTED` - Android-specific: the Google Wallet
  *   API only accepts a single JWT per call. Combine multiple passes into one
  *   JWT on your server before calling {@link addPasses}.
- * - `ERR_WALLET_IN_PROGRESS` - Android-specific: a previous add-pass call is
- *   still in flight. Wait for it to resolve or reject before issuing another.
+ * - `ERR_WALLET_IN_PROGRESS` - A previous add-pass call is still awaiting a
+ *   result. Wait for it to resolve or reject before issuing another.
  * - `ERR_WALLET_UNKNOWN` - An unexpected error occurred.
  *
  * @remarks
  * User cancellation is **not** reported as a rejection on either platform.
- * The add-pass promise resolves when the wallet sheet is presented; the
- * outcome (added vs. cancelled) is delivered via the `AddPassCompleted`
- * event — see {@link createWalletEventEmitter}.
+ * The add-pass promise resolves with `false` when the user cancels; the
+ * same outcome is also emitted via the `AddPassCompleted` event for
+ * consumers who prefer the event API — see {@link createWalletEventEmitter}.
  */
 export type WalletErrorCode =
   | 'INVALID_PASS'
@@ -67,8 +67,8 @@ const walletError = (code: WalletErrorCode, message: string): WalletError => {
 
 interface NativeWalletModule {
   canAddPasses(): Promise<boolean>;
-  addPass(passData: string): Promise<void>;
-  addPasses(passDataArray: string[]): Promise<void>;
+  addPass(passData: string): Promise<boolean>;
+  addPasses(passDataArray: string[]): Promise<boolean>;
 }
 
 const nativeModule = WalletKit as NativeWalletModule;
@@ -224,14 +224,22 @@ export const WalletKitModule = {
    * Add a single pass to the wallet.
    *
    * @param passData - Base64-encoded .pkpass on iOS, JWT on Android.
-   * @returns A promise that resolves when the wallet UI is presented and
-   *          rejects with a {@link WalletError} on any error. To be notified
-   *          of the final add result (added vs. cancelled), subscribe to the
-   *          `AddPassCompleted` event via {@link createWalletEventEmitter}.
+   * @returns A promise that resolves with `true` when the pass was newly
+   *          added in this session, or `false` when the user cancelled or
+   *          the pass was already in the wallet. Rejects with a
+   *          {@link WalletError} on any error.
    * @throws {@link WalletError} with code `INVALID_PASS` if `passData` is
    *         empty or not a recognized format.
+   * @throws {@link WalletError} with code `ERR_WALLET_IN_PROGRESS` if a
+   *         previous add-pass call is still awaiting a result.
+   *
+   * @remarks
+   * The same outcome is also delivered via the `AddPassCompleted` event on
+   * {@link createWalletEventEmitter}. The event is retained as a secondary
+   * notification channel for multi-listener setups; the Promise return
+   * value is the primary API in 2.x.
    */
-  addPass(passData: string): Promise<void> {
+  addPass(passData: string): Promise<boolean> {
     try {
       validatePassInput(passData);
     } catch (error) {
@@ -245,10 +253,10 @@ export const WalletKitModule = {
    *
    * @param passDataArray - Non-empty array of pass data strings (base64 for
    *                        iOS, JWT for Android).
-   * @returns A promise that resolves when the wallet UI is presented and
-   *          rejects with a {@link WalletError} on any error. To be notified
-   *          of the final add result, subscribe to `AddPassCompleted` via
-   *          {@link createWalletEventEmitter}.
+   * @returns A promise that resolves with `true` when every pass was newly
+   *          added in this session, or `false` when the user cancelled or
+   *          any pass was already in the wallet. Rejects with a
+   *          {@link WalletError} on any error.
    *
    * @throws {@link WalletError} with code `INVALID_PASS` if the array is empty
    *         or contains an entry that is not a recognized format.
@@ -256,8 +264,16 @@ export const WalletKitModule = {
    *         on Android when the array contains more than one entry. The
    *         Google Wallet API only accepts a single JWT per call; combine
    *         multiple passes into one JWT on your server.
+   * @throws {@link WalletError} with code `ERR_WALLET_IN_PROGRESS` if a
+   *         previous add-pass call is still awaiting a result.
+   *
+   * @remarks
+   * The same outcome is also delivered via the `AddPassCompleted` event on
+   * {@link createWalletEventEmitter}. The event is retained as a secondary
+   * notification channel for multi-listener setups; the Promise return
+   * value is the primary API in 2.x.
    */
-  addPasses(passDataArray: string[]): Promise<void> {
+  addPasses(passDataArray: string[]): Promise<boolean> {
     if (!Array.isArray(passDataArray) || passDataArray.length === 0) {
       return Promise.reject(
         walletError(
