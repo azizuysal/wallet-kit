@@ -231,7 +231,7 @@ jobs:
           DEVICE_ID=$(xcrun simctl list devices available -j | node -e "let source=''; process.stdin.on('data', chunk => source += chunk); process.stdin.on('end', () => { const runtimes=Object.values(JSON.parse(source).devices); const device=runtimes.flat().find(value => value.isAvailable && value.name.startsWith('iPhone')); if (!device) process.exit(1); process.stdout.write(device.udid); });")
           xcrun simctl boot "$DEVICE_ID" || test $? -eq 149
           xcrun simctl bootstatus "$DEVICE_ID" -b
-          xcodebuild test -workspace "$APP_DIR/ios/WalletKitExample.xcworkspace" -scheme ReactTestAppTests -destination "id=$DEVICE_ID" -derivedDataPath "$RUNNER_TEMP/DerivedData-tests-${{ matrix.rn }}-${{ matrix.architecture }}" CODE_SIGNING_ALLOWED=NO
+          xcodebuild test -workspace "$APP_DIR/ios/WalletKitExample.xcworkspace" -scheme ReactTestApp -only-testing:ReactTestAppTests -destination "id=$DEVICE_ID" -derivedDataPath "$RUNNER_TEMP/DerivedData-tests-${{ matrix.rn }}-${{ matrix.architecture }}" CODE_SIGNING_ALLOWED=NO
 
       - name: Launch current stable iOS app
         if: matrix.rn == '0.86.2' && matrix.architecture == 'new'
