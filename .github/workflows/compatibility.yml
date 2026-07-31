@@ -252,7 +252,7 @@ jobs:
           xcrun simctl launch "$DEVICE_ID" "$BUNDLE_ID"
           sleep 10
           DATA_CONTAINER=$(xcrun simctl get_app_container "$DEVICE_ID" "$BUNDLE_ID" data)
-          grep -qx 'invalid input rejected' "$DATA_CONTAINER/Documents/wallet-kit-smoke.txt"
+          grep -qx 'invalid input rejected; sample pass readable' "$DATA_CONTAINER/Documents/wallet-kit-smoke.txt"
           xcrun simctl spawn "$DEVICE_ID" log show --last 2m --style compact --predicate "process == 'ReactTestApp'" > "$RUNNER_TEMP/wallet-kit-ios.log"
           if grep -E "doesn't seem to be linked|Unhandled JS Exception|Fatal error" "$RUNNER_TEMP/wallet-kit-ios.log"; then exit 1; fi
           xcrun simctl io "$DEVICE_ID" screenshot "$RUNNER_TEMP/wallet-kit-ios.png"

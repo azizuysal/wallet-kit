@@ -24,7 +24,7 @@ internal interface WalletPayClient {
 internal class GoogleWalletPayClient(private val client: PayClient) : WalletPayClient {
   override fun checkAvailability(onSuccess: (Int) -> Unit, onFailure: (Exception) -> Unit) {
     client
-      .getPayApiAvailabilityStatus(PayClient.RequestType.SAVE_PASSES)
+      .getPayApiAvailabilityStatus(PayClient.RequestType.SAVE_PASSES_JWT)
       .addOnSuccessListener(onSuccess)
       .addOnFailureListener(onFailure)
   }
@@ -41,6 +41,7 @@ internal class WalletKitCore(
 ) {
   private val listenerCount = AtomicInteger(0)
   private var pendingPromise: WalletPromise? = null
+  private var walletActivityLaunched = false
 
   fun canAddPasses(promise: WalletPromise) {
     payClient.checkAvailability(
@@ -114,6 +115,7 @@ internal class WalletKitCore(
         }
 
         try {
+          markWalletActivityLaunched()
           payClient.savePassesJwt(jwt, activity, ADD_TO_GOOGLE_WALLET_REQUEST_CODE)
         } catch (error: Exception) {
           rejectPending(
@@ -133,7 +135,16 @@ internal class WalletKitCore(
     )
   }
 
-  fun handleActivityResult(requestCode: Int, resultCode: Int) {
+  fun handleHostResume() {
+    val promise = releaseAbandonedWalletPromise() ?: return
+    promise.reject(
+      ERR_WALLET_UNKNOWN,
+      "Google Wallet flow ended without an activity result",
+    )
+    sendCompletionEvent(false)
+  }
+
+  fun handleActivityResult(requestCode: Int, resultCode: Int, errorMessage: String? = null) {
     if (requestCode != ADD_TO_GOOGLE_WALLET_REQUEST_CODE) {
       return
     }
@@ -146,6 +157,28 @@ internal class WalletKitCore(
       }
       Activity.RESULT_CANCELED -> {
         promise.resolve(false)
+        sendCompletionEvent(false)
+      }
+      PayClient.SavePassesResult.API_UNAVAILABLE -> {
+        promise.reject(
+          ERR_WALLET_NOT_AVAILABLE,
+          "Google Wallet save API is unavailable",
+        )
+        sendCompletionEvent(false)
+      }
+      PayClient.SavePassesResult.SAVE_ERROR -> {
+        val message = errorMessage
+          ?.takeIf(String::isNotBlank)
+          ?.let { "Google Wallet could not save the pass: $it" }
+          ?: "Google Wallet could not save the pass"
+        promise.reject(ERR_WALLET_UNKNOWN, message)
+        sendCompletionEvent(false)
+      }
+      PayClient.SavePassesResult.INTERNAL_ERROR -> {
+        promise.reject(
+          ERR_WALLET_UNKNOWN,
+          "Google Wallet reported an internal error while saving the pass",
+        )
         sendCompletionEvent(false)
       }
       else -> {
@@ -190,7 +223,21 @@ internal class WalletKitCore(
   private fun releasePendingPromise(): WalletPromise? {
     val promise = pendingPromise
     pendingPromise = null
+    walletActivityLaunched = false
     return promise
+  }
+
+  @Synchronized
+  private fun markWalletActivityLaunched() {
+    walletActivityLaunched = true
+  }
+
+  @Synchronized
+  private fun releaseAbandonedWalletPromise(): WalletPromise? {
+    if (!walletActivityLaunched) {
+      return null
+    }
+    return releasePendingPromise()
   }
 
   @Synchronized

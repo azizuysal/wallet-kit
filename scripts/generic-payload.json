@@ -4,37 +4,27 @@
       {
         "genericType": "GENERIC_TYPE_UNSPECIFIED",
         "hexBackgroundColor": "#4285f4",
-        "logo": {
-          "sourceUri": {
-            "uri": "https://storage.googleapis.com/wallet-lab-tools-codelab-artifacts-public/pass_google_logo.jpg"
-          }
-        },
         "cardTitle": {
           "defaultValue": {
-            "language": "en",
+            "language": "en-US",
             "value": "Test Pass"
           }
         },
         "subheader": {
           "defaultValue": {
-            "language": "en",
+            "language": "en-US",
             "value": "Demo Mode"
           }
         },
         "header": {
           "defaultValue": {
-            "language": "en",
+            "language": "en-US",
             "value": "Wallet Kit"
           }
         },
         "barcode": {
           "type": "QR_CODE",
           "value": "DEMO"
-        },
-        "heroImage": {
-          "sourceUri": {
-            "uri": "https://storage.googleapis.com/wallet-lab-tools-codelab-artifacts-public/google-io-hero-demo-only.jpg"
-          }
         },
         "textModulesData": [
           {

@@ -19,7 +19,8 @@ import type { ViewProps } from 'react-native';
  */
 export enum WalletButtonStyle {
   /**
-   * Primary style — black filled button on iOS, dark theme on Android.
+   * Primary style — black filled button on iOS and the standard black Google
+   * Wallet button on Android.
    * @default
    */
   primary = 'primary',
@@ -55,7 +56,7 @@ export interface WalletButtonProps extends ViewProps {
    * @example
    * ```typescript
    * onPress={() => {
-   *   WalletKit.addPass(passData);
+   *   void WalletKit.addPass(passData).catch(handleWalletError);
    * }}
    * ```
    */

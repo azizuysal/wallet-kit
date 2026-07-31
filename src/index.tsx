@@ -29,14 +29,15 @@ const WalletKit: NativeWalletKitSpec =
  * - `INVALID_PASS` - The pass data is missing, empty, or not in a recognized
  *   wallet pass format (neither a base64-encoded .pkpass nor a JWT).
  * - `UNSUPPORTED_VERSION` - The pass version is not supported (iOS only).
- * - `ERR_WALLET_NOT_AVAILABLE` - Wallet app is not available on the device.
+ * - `ERR_WALLET_NOT_AVAILABLE` - The platform wallet cannot add passes.
  * - `ERR_WALLET_ACTIVITY_NULL` - Android-specific: Activity context is null.
  * - `ERR_WALLET_MULTIPLE_NOT_SUPPORTED` - Android-specific: the Google Wallet
  *   API only accepts a single JWT per call. Combine multiple passes into one
  *   JWT on your server before calling {@link WalletKitModule.addPasses}.
  * - `ERR_WALLET_IN_PROGRESS` - A previous add-pass call is still awaiting a
  *   result. Wait for it to resolve or reject before issuing another.
- * - `ERR_WALLET_UNKNOWN` - An unexpected error occurred.
+ * - `ERR_WALLET_UNKNOWN` - An availability, launch, presentation, lifecycle,
+ *   or unexpected provider failure occurred.
  *
  * User cancellation is **not** reported as a rejection on either platform.
  * The add-pass promise resolves with `false` when the user cancels; the
@@ -204,9 +205,11 @@ export const WalletKitModule = {
   /**
    * Check if the device can add passes to the wallet.
    *
-   * @returns `true` if the device supports adding passes, `false` otherwise.
-   * Rejects if the availability check itself fails (e.g. Google Play Services
-   * error on Android).
+   * @returns `true` if the platform wallet supports adding passes, `false`
+   *          otherwise. On iOS, hiding Wallet with Screen Time does not
+   *          disable PassKit and can still return `true`. Rejects if the
+   *          availability check itself fails, such as a Google Play Services
+   *          error on Android.
    */
   canAddPasses(): Promise<boolean> {
     return nativeModule.canAddPasses();
@@ -216,10 +219,12 @@ export const WalletKitModule = {
    * Add a single pass to the wallet.
    *
    * @param passData - Base64-encoded .pkpass on iOS, JWT on Android.
-   * @returns A promise that resolves with `true` when the pass was newly
-   *          added in this session, or `false` when the user cancelled or
-   *          the pass was already in the wallet. Rejects with a
-   *          {@link WalletError} on any error.
+   * @returns A promise that resolves with the native wallet outcome. On iOS,
+   *          `true` means the pass was newly added and `false` means the user
+   *          cancelled or the pass was already present. On Android, `true`
+   *          means Google Wallet reported a successful save, including an
+   *          already-linked object, and `false` means cancellation. Rejects
+   *          with a {@link WalletError} on any error.
    * @throws {@link WalletError} with code `INVALID_PASS` if `passData` is
    *         empty or not a recognized format.
    * @throws {@link WalletError} with code `ERR_WALLET_IN_PROGRESS` if a
@@ -228,8 +233,8 @@ export const WalletKitModule = {
    * @remarks
    * The same outcome is also delivered via the `AddPassCompleted` event on
    * {@link createWalletEventEmitter}. The event is retained as a secondary
-   * notification channel for multi-listener setups; the Promise return
-   * value is the primary API in 2.x.
+   * compatibility channel; the Promise return value is the primary API in
+   * 2.x.
    */
   addPass(passData: string): Promise<boolean> {
     try {
@@ -245,10 +250,12 @@ export const WalletKitModule = {
    *
    * @param passDataArray - Non-empty array of pass data strings (base64 for
    *                        iOS, JWT for Android).
-   * @returns A promise that resolves with `true` when every pass was newly
-   *          added in this session, or `false` when the user cancelled or
-   *          any pass was already in the wallet. Rejects with a
-   *          {@link WalletError} on any error.
+   * @returns A promise that resolves with the native wallet outcome. On iOS,
+   *          `true` means every pass was newly added and `false` means the user
+   *          cancelled or a pass was already present. On Android, `true`
+   *          means Google Wallet reported a successful save, including an
+   *          already-linked object, and `false` means cancellation. Rejects
+   *          with a {@link WalletError} on any error.
    *
    * @throws {@link WalletError} with code `INVALID_PASS` if the array is empty
    *         or contains an entry that is not a recognized format.
@@ -262,8 +269,8 @@ export const WalletKitModule = {
    * @remarks
    * The same outcome is also delivered via the `AddPassCompleted` event on
    * {@link createWalletEventEmitter}. The event is retained as a secondary
-   * notification channel for multi-listener setups; the Promise return
-   * value is the primary API in 2.x.
+   * compatibility channel; the Promise return value is the primary API in
+   * 2.x.
    */
   addPasses(passDataArray: string[]): Promise<boolean> {
     if (!Array.isArray(passDataArray) || passDataArray.length === 0) {
@@ -304,17 +311,18 @@ export const WalletKitModule = {
  * retained for compatibility throughout 2.x and may be removed in 3.x.
  *
  * @remarks
- * The emitted `AddPassCompleted` event payload is a raw `boolean` indicating
- * whether the pass was added successfully. It is not wrapped in an object.
+ * The emitted `AddPassCompleted` event payload is the same raw `boolean`
+ * outcome as the add-pass promise. It is not wrapped in an object. On iOS,
+ * `false` also covers an already-present pass. On Android, `true` is the
+ * provider's successful-save result and can include an already-linked object.
  *
  * @example
  * ```typescript
  * const emitter = createWalletEventEmitter();
  * const subscription = emitter.addListener(
  *   'AddPassCompleted',
- *   (success: boolean) => {
- *     // success === true when the user added the pass,
- *     // success === false when the user cancelled.
+ *   (added: boolean) => {
+ *     console.log(added);
  *   }
  * );
  *

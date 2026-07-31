@@ -6,23 +6,67 @@ const path = require('path');
 const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
 
-const dangerousKeys = new Set(['__proto__', 'constructor', 'prototype']);
-
 const isPlainObject = (value) =>
   value !== null && typeof value === 'object' && !Array.isArray(value);
 
 const deepMerge = (target, source) => {
   for (const [key, value] of Object.entries(source)) {
-    if (dangerousKeys.has(key)) {
+    if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
       throw new Error(`Unsafe payload property: ${key}`);
     }
-    if (isPlainObject(value) && isPlainObject(target[key])) {
+    if (
+      isPlainObject(value) &&
+      Object.hasOwn(target, key) &&
+      isPlainObject(target[key])
+    ) {
       deepMerge(target[key], value);
     } else {
-      target[key] = value;
+      Object.defineProperty(target, key, {
+        configurable: true,
+        enumerable: true,
+        value,
+        writable: true,
+      });
     }
   }
   return target;
+};
+
+const ensureGenericClasses = (payload, existingClassId) => {
+  if (!Array.isArray(payload.genericObjects)) {
+    return;
+  }
+  if (payload.genericObjects.length === 0) {
+    throw new Error('Generic payload must contain at least one object');
+  }
+
+  if (existingClassId) {
+    for (const object of payload.genericObjects) {
+      object.classId = existingClassId;
+    }
+    return;
+  }
+
+  const classIds = [
+    ...new Set(
+      payload.genericObjects.map((object) => {
+        if (typeof object.classId !== 'string' || object.classId.length === 0) {
+          throw new Error('Every generic object must contain a classId');
+        }
+        return object.classId;
+      })
+    ),
+  ];
+  const definitions = Array.isArray(payload.genericClasses)
+    ? payload.genericClasses
+    : [];
+  const definedIds = new Set(definitions.map((definition) => definition.id));
+  for (const classId of classIds) {
+    if (!definedIds.has(classId)) {
+      definitions.push({ id: classId });
+    }
+  }
+  payload.genericClasses = definitions;
 };
 
 function base64url(buffer) {
@@ -78,11 +122,34 @@ function createPassClaims(config, defaultPayloadPath) {
     }
   }
 
-  if (!config.payloadFile) {
-    return claims;
+  if (config.payloadFile) {
+    const customPayload = JSON.parse(
+      fs.readFileSync(config.payloadFile, 'utf8')
+    );
+    if (
+      !isPlainObject(customPayload) ||
+      !isPlainObject(customPayload.payload)
+    ) {
+      throw new Error(
+        'Custom payload file must be an object containing a "payload" object'
+      );
+    }
+    const protectedClaims = Object.keys(customPayload).filter(
+      (key) => key !== 'payload'
+    );
+    if (protectedClaims.length > 0) {
+      throw new Error(
+        `Custom payload file cannot override protected JWT claims: ${protectedClaims.join(
+          ', '
+        )}`
+      );
+    }
+
+    deepMerge(claims.payload, customPayload.payload);
   }
-  const customPayload = JSON.parse(fs.readFileSync(config.payloadFile, 'utf8'));
-  return deepMerge(claims, customPayload);
+
+  ensureGenericClasses(claims.payload, config.classId);
+  return claims;
 }
 
 function loadSigningCredentials(config) {
@@ -253,3 +320,7 @@ function main() {
 if (require.main === module) {
   main();
 }
+
+module.exports = {
+  createPassClaims,
+};

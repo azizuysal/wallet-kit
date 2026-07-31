@@ -1,7 +1,7 @@
 {
   "name": "@azizuysal/wallet-kit",
   "version": "2.0.0",
-  "description": "A React Native wrapper for Apple and Google wallet passes",
+  "description": "Add Apple Wallet and Google Wallet passes in React Native",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
   "module": "./lib/module/index.js",
@@ -42,7 +42,6 @@
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
     "prepare": "bob build",
-    "version": "conventional-changelog -p angular -i CHANGELOG.md -s && git add CHANGELOG.md",
     "docs": "typedoc",
     "docs:watch": "typedoc --watch",
     "docs:markdown": "typedoc --plugin typedoc-plugin-markdown --out docs/api-markdown",
@@ -53,7 +52,7 @@
     "validate:compatibility": "node scripts/validate-compatibility.mjs",
     "compatibility:matrix": "node scripts/compatibility-matrix.mjs",
     "codegen": "react-native codegen --source library",
-    "verify": "yarn validate:compatibility && yarn validate:resources && yarn validate:secrets && yarn lint && yarn typecheck && yarn test --coverage && yarn prepare && yarn docs && yarn codegen && yarn validate:package"
+    "verify": "yarn validate:compatibility && yarn validate:resources && yarn validate:secrets && yarn lint && yarn typecheck && yarn test --coverage && yarn prepare && yarn example build:android && yarn example build:ios && yarn docs && yarn codegen && yarn validate:package"
   },
   "keywords": [
     "react-native",
@@ -70,7 +69,6 @@
     "wallet-pass",
     "react-native-wallet",
     "add-to-wallet",
-    "payment",
     "tickets",
     "boarding-pass",
     "loyalty-card"
@@ -104,7 +102,6 @@
     "@types/react": "^19.2.14",
     "@types/react-test-renderer": "^19.1.0",
     "commitlint": "^20.5.0",
-    "conventional-changelog-cli": "^5.0.0",
     "del-cli": "^5.1.0",
     "eslint": "^9.39.0",
     "eslint-config-prettier": "^10.0.0",
@@ -123,6 +120,7 @@
     "yargs": "17"
   },
   "resolutions": {
+    "@babel/runtime@npm:^7.25.0": "npm:7.29.7",
     "@types/react": "^19.2.14",
     "brace-expansion@npm:^1.1.7": "npm:1.1.18",
     "brace-expansion@npm:^2.0.1": "npm:2.1.4",

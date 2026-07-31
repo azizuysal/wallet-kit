@@ -80,7 +80,7 @@ if (await WalletKit.canAddPasses()) {
     if (added) {
       console.log('Pass added');
     } else {
-      console.log('Cancelled or already present');
+      console.log('The wallet did not add the pass');
     }
   } catch (error) {
     const walletError = error as WalletError;
@@ -93,7 +93,11 @@ function AddButton() {
     <WalletButton
       addPassButtonStyle={WalletButtonStyle.primary}
       style={{ width: 200, height: 48 }}
-      onPress={() => void WalletKit.addPass(passData)}
+      onPress={() => {
+        void WalletKit.addPass(passData).catch((error: WalletError) => {
+          console.error(error.code, error.message);
+        });
+      }}
     />
   );
 }
@@ -101,12 +105,18 @@ function AddButton() {
 
 On iOS, `passData` is a base64-encoded `.pkpass`. On Android, it is a signed Google Wallet JWT. Generate and sign Android JWTs on a trusted server; never embed issuer private keys in a mobile application.
 
+On iOS, `canAddPasses()` reports whether PassKit supports adding passes. Hiding the Wallet app with Screen Time does not disable PassKit, so it can still return `true` in that state.
+
 ### Final outcomes
 
 `addPass` and `addPasses` settle after the native wallet flow finishes:
 
-- `true`: every submitted pass was newly added.
-- `false`: the user cancelled, or at least one Apple Wallet pass was already present.
+- iOS `true`: every submitted pass was newly added.
+- Android `true`: Google Wallet reported a successful save. The Android SDK also
+  reports success when an object is already linked, so this is not proof that the
+  object was newly added.
+- `false`: the user cancelled on either platform, or at least one Apple Wallet
+  pass was already present.
 - rejection: validation, availability, presentation, lifecycle, or provider failure.
 
 Only one add operation may be active at a time. A concurrent call rejects with `ERR_WALLET_IN_PROGRESS` and does not replace the active operation.

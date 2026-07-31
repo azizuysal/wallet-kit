@@ -23,16 +23,3 @@ jobs:
 
       - name: Run required checks
         run: corepack yarn verify
-
-      - name: Upload coverage reports to Codecov
-        if: always()
-        uses: codecov/codecov-action@v6
-        with:
-          files: ./coverage/lcov.info
-          flags: unittests
-          name: codecov-umbrella
-          fail_ci_if_error: false
-          verbose: true
-
-      - name: Confirm the package dry run
-        run: npm pack --dry-run

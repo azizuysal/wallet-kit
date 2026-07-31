@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Breaking Changes
 
-- **API**: `addPass` and `addPasses` now return `Promise<boolean>` that resolves with the add outcome directly (`true` when every pass was newly added, `false` on cancel or when a pass was already in the wallet). The 1.x versions returned `Promise<void>` and delivered the outcome only via the `AddPassCompleted` event. The event is retained as a secondary channel; the Promise return value is the primary API.
+- **API**: `addPass` and `addPasses` now return `Promise<boolean>` that resolves with the native wallet outcome directly. On iOS, `true` means every pass was newly added and `false` means cancellation or an already-present pass. On Android, `true` means Google Wallet reported a successful save, including an idempotent save of an already-linked object, and `false` means cancellation. The 1.x versions returned `Promise<void>` and delivered the outcome only via the `AddPassCompleted` event. The event is retained as a secondary channel; the Promise return value is the primary API.
 - **Peer dependencies**: React Native now requires `>=0.76.0` and React requires `>=18.2.0`. React Native below 0.76 remains on Wallet Kit 1.x.
 - **Platform floors**: iOS is 15.1; Android `minSdk` is 24; Java source and target compatibility are 17.
 - **JWT tool**: removed the unsafe `--privateKey` argument. Signing credentials must come from `--keyFile`, a service-account JSON path, or `GOOGLE_WALLET_PRIVATE_KEY`.
@@ -23,16 +23,19 @@ All notable changes to this project will be documented in this file. See [standa
 ### Bug Fixes
 
 - **iOS**: add-pass promises now settle exactly once after delegate completion or adaptive dismissal, use a scene-aware presenter, reject unavailable or failed presentation states with stable codes, and never dismiss unrelated host modals.
-- **Android**: activity results use the current React Native signature, pending calls survive no silent overwrite, and host destruction rejects active work.
+- **Android**: activity results use the correct React Native signature for each supported version, concurrent calls cannot overwrite active work, and interrupted or destroyed host flows reject without leaking their pending promise.
 - **Android button**: `primary` renders Google's standard black resource; `secondary` and `outline` render the condensed black resource with a single accessible control.
 - **Android resources**: corrected invalid locale qualifiers and separated Brazilian and European Portuguese resources.
+- **Security tooling**: updated vulnerable JavaScript and Ruby development dependencies and hardened compatibility-app file handling and JWT payload merging.
 
 ### Chores
 
 - Migrated the development workspace to Yarn 4.18.0, React Native 0.86.2, React Native Builder Bob 0.43.0, and React Native Test App 5.4.6.
 - Removed hard Android Gradle Plugin and Kotlin plugin pins so the library inherits the host React Native toolchain.
 - Replaced generated example native templates with React Native Test App configuration.
+- Removed non-blocking Codecov and bundle-size reporting; Jest coverage thresholds and package-content inspection remain blocking in the main CI gate.
 - Added immutable installation, package-content, tracked-secret, Android resource, Codegen, OSV Scanner 2.3.8, CodeQL, dependency-review, and provenance release gates.
+- Made each curated changelog version section the authoritative GitHub release body and removed the obsolete automatic changelog generator.
 
 ### Compatibility
 
@@ -83,7 +86,6 @@ All notable changes to this project will be documented in this file. See [standa
 ### Documentation
 
 - README: removed decorative emojis per project style; documented the new error codes; added a "Compatibility" section clarifying that formal React Native support ranges arrive in 2.x.
-- Project `CLAUDE.md` rewritten: the previous claim that Android was not implemented was incorrect; the event payload is documented as a raw boolean (not `{ success }`); added the file-layout and platform file-resolution sections.
 
 ## [1.0.0] - 2025-09-20
 

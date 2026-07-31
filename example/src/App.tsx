@@ -31,6 +31,25 @@ const PASS_FILES = {
 
 const SMOKE_RESULT_PATH = `${RNFS.DocumentDirectoryPath}/wallet-kit-smoke.txt`;
 
+const loadPassData = async (filename: string): Promise<string> => {
+  if (Platform.OS === 'ios') {
+    return await RNFS.readFile(
+      `${RNFS.MainBundlePath}/ios/${filename}`,
+      'base64'
+    );
+  }
+
+  try {
+    const jwt = await RNFS.readFileAssets(filename);
+    return jwt.trim();
+  } catch (error) {
+    console.error(`Failed to load ${filename}:`, error);
+    throw new Error(
+      `JWT file not found: ${filename}. Please create it in samples/android/`
+    );
+  }
+};
+
 const writeSmokeResult = async (result: string): Promise<void> => {
   try {
     await RNFS.writeFile(SMOKE_RESULT_PATH, result, 'utf8');
@@ -50,6 +69,7 @@ const showError = (context: string, error: unknown) => {
 const App = () => {
   const [canAddPasses, setCanAddPasses] = React.useState(false);
   const [invalidInputRejected, setInvalidInputRejected] = React.useState(false);
+  const [lastOutcome, setLastOutcome] = React.useState('NONE');
   const [platform] = React.useState(Platform.OS);
   const emitter = React.useMemo(() => createWalletEventEmitter(), []);
 
@@ -89,7 +109,24 @@ const App = () => {
             : undefined;
         if (code === 'INVALID_PASS') {
           console.log('WalletKit smoke: invalid input rejected');
-          await writeSmokeResult('invalid input rejected');
+          if (Platform.OS === 'ios') {
+            try {
+              await loadPassData(PASS_FILES.ios.single);
+              console.log('WalletKit smoke: sample pass readable');
+            } catch (sampleError) {
+              console.error(
+                'WalletKit smoke: sample pass unreadable',
+                sampleError
+              );
+              await writeSmokeResult('sample pass unreadable');
+              return;
+            }
+          }
+          await writeSmokeResult(
+            Platform.OS === 'ios'
+              ? 'invalid input rejected; sample pass readable'
+              : 'invalid input rejected'
+          );
           setInvalidInputRejected(true);
         } else {
           console.error(
@@ -103,25 +140,6 @@ const App = () => {
     checkInvalidInput();
   }, []);
 
-  const loadPassData = async (filename: string): Promise<string> => {
-    if (Platform.OS === 'ios') {
-      return await RNFS.readFile(
-        RNFS.MainBundlePath + '/' + filename,
-        'base64'
-      );
-    } else {
-      try {
-        const jwt = await RNFS.readFileAssets(`samples/${filename}`);
-        return jwt.trim();
-      } catch (error) {
-        console.error(`Failed to load ${filename}:`, error);
-        throw new Error(
-          `JWT file not found: ${filename}. Please create it in android/app/src/main/assets/samples/`
-        );
-      }
-    }
-  };
-
   const addSinglePass = async () => {
     try {
       const passFile =
@@ -131,11 +149,16 @@ const App = () => {
       const passData = await loadPassData(passFile);
       console.log('Pass type detected:', detectPassType(passData));
       const added = await WalletKit.addPass(passData);
+      setLastOutcome(`SINGLE: ${added ? 'ADDED' : 'NOT ADDED'}`);
       Alert.alert(
         added ? 'Added' : 'Not added',
         added
-          ? 'The pass was added.'
-          : 'The operation was cancelled or the pass already exists.'
+          ? Platform.OS === 'android'
+            ? 'Google Wallet reported that the pass was saved.'
+            : 'The pass was added.'
+          : Platform.OS === 'android'
+            ? 'The operation was cancelled.'
+            : 'The operation was cancelled or the pass already exists.'
       );
     } catch (error: unknown) {
       showError('Failed to add pass', error);
@@ -154,11 +177,16 @@ const App = () => {
       );
 
       const added = await WalletKit.addPasses(passes);
+      setLastOutcome(`MULTIPLE: ${added ? 'ADDED' : 'NOT ADDED'}`);
       Alert.alert(
         added ? 'Added' : 'Not added',
         added
-          ? 'Every pass was added.'
-          : 'The operation was cancelled or a pass already exists.'
+          ? Platform.OS === 'android'
+            ? 'Google Wallet reported that the pass was saved.'
+            : 'Every pass was added.'
+          : Platform.OS === 'android'
+            ? 'The operation was cancelled.'
+            : 'The operation was cancelled or a pass already exists.'
       );
     } catch (error: unknown) {
       showError('Failed to add passes', error);
@@ -182,6 +210,7 @@ const App = () => {
               <Text style={styles.infoText}>
                 Invalid Input Rejected: {invalidInputRejected ? 'YES' : 'NO'}
               </Text>
+              <Text style={styles.infoText}>Last Outcome: {lastOutcome}</Text>
             </View>
 
             <Text style={styles.sectionTitle}>Native Buttons</Text>

@@ -14,7 +14,8 @@ android/app/
 android/build/
 dist/*
 !dist/.gitignore
-ios/DerivedData/
+ios/DerivedData*/
+ios/Podfile.lock
 ios/Pods/
 ios/build/
 local.properties

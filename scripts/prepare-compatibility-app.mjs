@@ -1,6 +1,17 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+const readOptionalFile = (filePath) => {
+  try {
+    return fs.readFileSync(filePath, 'utf8');
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      return undefined;
+    }
+    throw error;
+  }
+};
+
 const options = new Map();
 for (let index = 2; index < process.argv.length; index += 2) {
   const name = process.argv[index];
@@ -103,10 +114,10 @@ const gradlePropertiesPath = path.join(
   'android',
   'gradle.properties'
 );
-if (fs.existsSync(gradlePropertiesPath)) {
+let properties = readOptionalFile(gradlePropertiesPath);
+if (properties !== undefined) {
   const useNewArchitecture =
     architecture === 'new' || Number(reactNativeVersion.split('.')[1]) >= 82;
-  let properties = fs.readFileSync(gradlePropertiesPath, 'utf8');
   const setting = `newArchEnabled=${useNewArchitecture}`;
   properties = /^newArchEnabled=.*$/m.test(properties)
     ? properties.replace(/^newArchEnabled=.*$/m, setting)
@@ -122,12 +133,9 @@ const gradleWrapperPropertiesPath = path.join(
   'gradle-wrapper.properties'
 );
 const gradleDistribution = gradleDistributions.get(reactNativeVersion);
-if (gradleDistribution && fs.existsSync(gradleWrapperPropertiesPath)) {
+const wrapperProperties = readOptionalFile(gradleWrapperPropertiesPath);
+if (gradleDistribution && wrapperProperties !== undefined) {
   const distributionUrl = `distributionUrl=https\\://services.gradle.org/distributions/gradle-${gradleDistribution}.zip`;
-  const wrapperProperties = fs.readFileSync(
-    gradleWrapperPropertiesPath,
-    'utf8'
-  );
   if (!/^distributionUrl=.*$/m.test(wrapperProperties)) {
     throw new Error('Gradle wrapper properties has no distributionUrl');
   }
@@ -138,7 +146,7 @@ if (gradleDistribution && fs.existsSync(gradleWrapperPropertiesPath)) {
 }
 
 const podfilePath = path.join(appDirectory, 'ios', 'Podfile');
-if (includeNativeTests && fs.existsSync(podfilePath)) {
+if (includeNativeTests) {
   fs.writeFileSync(
     podfilePath,
     `ws_dir = Pathname.new(__dir__)

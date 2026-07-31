@@ -2,7 +2,6 @@ package com.azizuysal.walletkit
 
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
-import com.facebook.react.uimanager.UIManagerHelper
 import com.facebook.react.uimanager.ViewManagerDelegate
 import com.facebook.react.viewmanagers.WalletButtonManagerDelegate
 import com.facebook.react.viewmanagers.WalletButtonManagerInterface
@@ -22,9 +21,7 @@ class WalletButtonManager : SimpleViewManager<WalletButtonView>(),
 
   override fun addEventEmitters(reactContext: ThemedReactContext, view: WalletButtonView) {
     view.installPressHandler {
-      UIManagerHelper.getEventDispatcherForReactTag(reactContext, view.id)?.dispatchEvent(
-        WalletButtonPressEvent(UIManagerHelper.getSurfaceId(view), view.id),
-      )
+      WalletButtonEventDispatcher.dispatch(reactContext, view)
     }
   }
 

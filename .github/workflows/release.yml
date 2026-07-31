@@ -51,6 +51,9 @@ jobs:
       - name: Run final package checks
         run: corepack yarn verify
 
+      - name: Prepare curated GitHub release notes
+        run: node scripts/extract-release-notes.js CHANGELOG.md "${GITHUB_REF_NAME#v}" "$RUNNER_TEMP/release-notes.md"
+
       - name: Configure npm registry
         uses: actions/setup-node@v6
         with:
@@ -71,7 +74,8 @@ jobs:
       - name: Create GitHub release after npm succeeds
         uses: softprops/action-gh-release@v3
         with:
-          generate_release_notes: true
+          body_path: ${{ runner.temp }}/release-notes.md
+          generate_release_notes: false
           draft: false
           prerelease: ${{ contains(github.ref_name, '-') }}
         env:

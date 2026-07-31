@@ -18,16 +18,16 @@ Store local credential files outside the repository. `.env*`, PEM/key files, and
 
 ## Options
 
-| Option                  | Alias | Description                            | Default                         |
-| ----------------------- | ----- | -------------------------------------- | ------------------------------- |
-| `--type`                | `-t`  | `generic`, `event`, or `loyalty`       | `generic`                       |
-| `--output`              | `-o`  | Required JWT output path               | none                            |
-| `--payloadFile`         | `-p`  | JSON merged into the selected template | none                            |
-| `--issuerId`            |       | Required Google Wallet issuer ID       | `GOOGLE_WALLET_ISSUER_ID`       |
-| `--serviceAccountEmail` |       | Service-account email                  | `GOOGLE_WALLET_SERVICE_ACCOUNT` |
-| `--classId`             |       | Existing or test class ID              | `GOOGLE_WALLET_CLASS_ID`        |
-| `--keyFile`             |       | PEM or service-account JSON path       | `GOOGLE_WALLET_KEY_FILE`        |
-| `--demoMode`            |       | Mark generated content as test-only    | `false`                         |
+| Option                  | Alias | Description                           | Default                         |
+| ----------------------- | ----- | ------------------------------------- | ------------------------------- |
+| `--type`                | `-t`  | `generic`, `event`, or `loyalty`      | `generic`                       |
+| `--output`              | `-o`  | Required JWT output path              | none                            |
+| `--payloadFile`         | `-p`  | Pass payload merged into the template | none                            |
+| `--issuerId`            |       | Required Google Wallet issuer ID      | `GOOGLE_WALLET_ISSUER_ID`       |
+| `--serviceAccountEmail` |       | Service-account email                 | `GOOGLE_WALLET_SERVICE_ACCOUNT` |
+| `--classId`             |       | Existing or test class ID             | `GOOGLE_WALLET_CLASS_ID`        |
+| `--keyFile`             |       | PEM or service-account JSON path      | `GOOGLE_WALLET_KEY_FILE`        |
+| `--demoMode`            |       | Mark generated content as test-only   | `false`                         |
 
 ## Examples
 
@@ -66,6 +66,8 @@ Do not paste private keys directly into a terminal command or chat. Load them fr
 
 ## Payload templates
 
-The default templates are `generic-payload.json`, `event-payload.json`, and `loyalty-payload.json`. A `--payloadFile` is deeply merged into the selected template. Prototype-mutating keys are rejected.
+The default templates are `generic-payload.json`, `event-payload.json`, and `loyalty-payload.json`. A `--payloadFile` must contain a top-level `payload` object, which is deeply merged into the selected template. JWT identity claims such as `iss`, `aud`, `typ`, `iat`, and `origins` are derived by the generator and cannot be overridden by the payload file. Prototype-mutating keys are rejected.
+
+When no `--classId` is supplied for a generic pass, the JWT includes a minimal `genericClasses` entry for the generated class ID. Supply `--classId` only when the class already exists in the issuer account.
 
 Generated sample JWTs are ignored by Git and must not be committed.

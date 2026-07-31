@@ -1,6 +1,6 @@
 # Wallet Kit React Native Test App
 
-The example uses `react-native-test-app` rather than checked-in application templates. It exercises availability, final promise outcomes, deprecated event compatibility, and every native button style.
+The example uses `react-native-test-app` generated native hosts instead of hand-maintained application templates. It exercises availability, final promise outcomes, deprecated event compatibility, and every native button style.
 
 From the repository root:
 
@@ -36,7 +36,7 @@ The non-secret `.pkpass` fixtures are in `samples/ios` and are included through 
 Android intentionally has no bundled JWT. Generate a JWT with dedicated test credentials by following [`scripts/README.md`](../scripts/README.md), then copy the output to:
 
 ```text
-example/android/app/src/main/assets/samples/demo.jwt
+example/samples/android/demo.jwt
 ```
 
-The native project is generated locally, so create the directories if needed. JWT files and credential files are ignored by Git. Never use or commit production issuer credentials.
+The directory is included through `app.json`. JWT files and credential files are ignored by Git. Never use or commit production issuer credentials.

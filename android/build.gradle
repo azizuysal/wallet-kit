@@ -56,6 +56,11 @@ android {
     main.java.srcDirs += useNewArchitecture
       ? "src/newarch/java"
       : "src/legacy/java"
+    if (useNewArchitecture) {
+      main.java.srcDirs += reactNativeMinor >= 85
+        ? "src/rn85plus/java"
+        : "src/rn84minus/java"
+    }
   }
 
   compileOptions {

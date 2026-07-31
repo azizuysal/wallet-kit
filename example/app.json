@@ -11,7 +11,7 @@
     }
   ],
   "resources": {
-    "android": ["dist/main.android.jsbundle"],
+    "android": ["dist/main.android.jsbundle", "samples/android"],
     "ios": ["dist/main.ios.jsbundle", "samples/ios"]
   },
   "android": {

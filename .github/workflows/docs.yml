@@ -5,6 +5,7 @@ on:
     branches:
       - main
     paths:
+      - 'README.md'
       - 'src/**'
       - 'package.json'
       - 'typedoc.json'
@@ -29,9 +30,6 @@ jobs:
 
       - name: Setup
         uses: ./.github/actions/setup
-
-      - name: Build package
-        run: yarn prepare
 
       - name: Generate API documentation
         run: yarn docs

@@ -10,6 +10,7 @@ import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.google.android.gms.pay.Pay
+import com.google.android.gms.pay.PayClient
 
 internal class WalletKitModuleHost(private val reactContext: ReactApplicationContext) :
   LifecycleEventListener {
@@ -26,7 +27,11 @@ internal class WalletKitModuleHost(private val reactContext: ReactApplicationCon
       resultCode: Int,
       data: Intent?,
     ) {
-      core.handleActivityResult(requestCode, resultCode)
+      core.handleActivityResult(
+        requestCode,
+        resultCode,
+        data?.getStringExtra(PayClient.EXTRA_API_ERROR_MESSAGE),
+      )
     }
   }
 
@@ -57,7 +62,7 @@ internal class WalletKitModuleHost(private val reactContext: ReactApplicationCon
 
   fun removeListeners(count: Double) = core.removeListeners(count)
 
-  override fun onHostResume() = Unit
+  override fun onHostResume() = core.handleHostResume()
 
   override fun onHostPause() = Unit
 

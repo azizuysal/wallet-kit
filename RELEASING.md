@@ -26,7 +26,8 @@ Use dedicated test issuer and Apple pass credentials. Never use founder, custome
 - Cancel the sheet and verify the promise resolves `false`.
 - Submit an already-present pass and verify `false`.
 - Add multiple valid passes and verify the final aggregate outcome.
-- Test a device or profile where adding passes is restricted and verify `ERR_WALLET_NOT_AVAILABLE`.
+
+Hiding Wallet with Screen Time is not an unavailable-wallet test. It hides the app without disabling PassKit, so `canAddPasses()` may still return `true`. Verify iOS unavailable-wallet and controller-creation failures through the injectable native tests.
 
 ### Android with Google Play Services
 
@@ -63,7 +64,7 @@ The tag workflow:
 2. Runs the full reusable security workflow.
 3. Repeats all package checks and verifies the tag/version match.
 4. Publishes to npm with `npm publish --access public --provenance`. Prerelease tags use npm's `next` channel.
-5. Creates the GitHub release only after npm succeeds.
+5. Extracts the matching version section from `CHANGELOG.md` and creates the GitHub release with those curated notes only after npm succeeds.
 
 This order prevents a failed npm publication from leaving a misleading successful GitHub release. The `npm-production` GitHub environment should require maintainer approval. Configure `NPM_TOKEN` as an environment secret and retain `id-token: write` for provenance. Never print or place the token in repository files.
 

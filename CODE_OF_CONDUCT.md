@@ -20,10 +20,7 @@ The following behaviors are not acceptable:
 
 ## Reporting Issues
 
-If you experience or witness unacceptable behavior, please report it by:
-
-- Creating an issue on GitHub with the prefix `[CONDUCT]`
-- Or contacting the maintainers directly through GitHub
+If you experience or witness unacceptable behavior, email `security@azizuysal.com` with `[CONDUCT]` in the subject. Do not include private conduct reports in public GitHub issues.
 
 We will review and address all reports promptly and fairly.
 
