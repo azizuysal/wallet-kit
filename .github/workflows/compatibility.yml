@@ -233,7 +233,7 @@ jobs:
           xcrun simctl bootstatus "$DEVICE_ID" -b
           RESULT_BUNDLE="$RUNNER_TEMP/WalletKitTests-${{ matrix.rn }}-${{ matrix.architecture }}.xcresult"
           RESULT_SUMMARY="$RUNNER_TEMP/WalletKitTests-${{ matrix.rn }}-${{ matrix.architecture }}.json"
-          xcodebuild test -workspace "$APP_DIR/ios/WalletKitExample.xcworkspace" -scheme ReactTestApp -only-testing:ReactTestAppTests/WalletKitTests -destination "id=$DEVICE_ID" -derivedDataPath "$RUNNER_TEMP/DerivedData-tests-${{ matrix.rn }}-${{ matrix.architecture }}" -resultBundlePath "$RESULT_BUNDLE" CODE_SIGNING_ALLOWED=NO
+          xcodebuild test -workspace "$APP_DIR/ios/WalletKitExample.xcworkspace" -scheme wallet-kit-Unit-Tests -destination "id=$DEVICE_ID" -derivedDataPath "$RUNNER_TEMP/DerivedData-tests-${{ matrix.rn }}-${{ matrix.architecture }}" -resultBundlePath "$RESULT_BUNDLE" CODE_SIGNING_ALLOWED=NO
           xcrun xcresulttool get test-results summary --path "$RESULT_BUNDLE" --compact > "$RESULT_SUMMARY"
           node -e "const fs=require('fs'); const summary=JSON.parse(fs.readFileSync(process.argv[1], 'utf8')); if (summary.result !== 'Passed' || summary.totalTestCount !== 12 || summary.passedTests !== 12 || summary.failedTests !== 0 || summary.skippedTests !== 0) { throw new Error('Expected all 12 WalletKitTests to pass; received ' + JSON.stringify({ result: summary.result, totalTestCount: summary.totalTestCount, passedTests: summary.passedTests, failedTests: summary.failedTests, skippedTests: summary.skippedTests })); }" "$RESULT_SUMMARY"
 
