@@ -228,11 +228,10 @@ jobs:
         env:
           APP_DIR: ${{ runner.temp }}/wallet-kit-ios-${{ matrix.rn }}-${{ matrix.architecture }}
         run: |
-          SCHEME=$(xcodebuild -workspace "$APP_DIR/ios/WalletKitExample.xcworkspace" -list -json | node -e "let source=''; process.stdin.on('data', chunk => source += chunk); process.stdin.on('end', () => { const schemes=JSON.parse(source).workspace.schemes; const scheme=schemes.find(value => value.includes('wallet-kit-Tests')); if (!scheme) process.exit(1); process.stdout.write(scheme); });")
           DEVICE_ID=$(xcrun simctl list devices available -j | node -e "let source=''; process.stdin.on('data', chunk => source += chunk); process.stdin.on('end', () => { const runtimes=Object.values(JSON.parse(source).devices); const device=runtimes.flat().find(value => value.isAvailable && value.name.startsWith('iPhone')); if (!device) process.exit(1); process.stdout.write(device.udid); });")
           xcrun simctl boot "$DEVICE_ID" || test $? -eq 149
           xcrun simctl bootstatus "$DEVICE_ID" -b
-          xcodebuild test -workspace "$APP_DIR/ios/WalletKitExample.xcworkspace" -scheme "$SCHEME" -destination "id=$DEVICE_ID" -derivedDataPath "$RUNNER_TEMP/DerivedData-tests-${{ matrix.rn }}-${{ matrix.architecture }}" CODE_SIGNING_ALLOWED=NO
+          xcodebuild test -workspace "$APP_DIR/ios/WalletKitExample.xcworkspace" -scheme ReactTestAppTests -destination "id=$DEVICE_ID" -derivedDataPath "$RUNNER_TEMP/DerivedData-tests-${{ matrix.rn }}-${{ matrix.architecture }}" CODE_SIGNING_ALLOWED=NO
 
       - name: Launch current stable iOS app
         if: matrix.rn == '0.86.2' && matrix.architecture == 'new'
