@@ -52,7 +52,7 @@
     "validate:package": "node scripts/validate-package.mjs",
     "validate:compatibility": "node scripts/validate-compatibility.mjs",
     "compatibility:matrix": "node scripts/compatibility-matrix.mjs",
-    "codegen": "react-native codegen",
+    "codegen": "react-native codegen --source library",
     "verify": "yarn validate:compatibility && yarn validate:resources && yarn validate:secrets && yarn lint && yarn typecheck && yarn test --coverage && yarn prepare && yarn docs && yarn codegen && yarn validate:package"
   },
   "keywords": [

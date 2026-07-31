@@ -5,7 +5,8 @@ const trackedFiles = execFileSync('git', ['ls-files', '-z'])
   .toString('utf8')
   .split('\0')
   .filter(Boolean);
-const forbiddenPath = /(^|\/)(?:\.env(?:\..*)?|credentials?(?:\..*)?|service[-_]?account(?:\..*)?)$|\.(?:pem|key)$/i;
+const forbiddenPath =
+  /(^|\/)(?:\.env(?:\..*)?|credentials?(?:\..*)?|service[-_]?account(?:\..*)?)$|\.(?:pem|key)$/i;
 const privateKeyHeader = [
   '-----BEGIN ',
   '(?:RSA |EC |OPENSSH )?',
@@ -26,9 +27,13 @@ for (const filename of trackedFiles) {
   const source = data.toString('utf8');
   for (const marker of secretMarkers) {
     if (marker.test(source)) {
-      throw new Error(`Private-key material found in tracked file: ${filename}`);
+      throw new Error(
+        `Private-key material found in tracked file: ${filename}`
+      );
     }
   }
 }
 
-console.log(`Scanned ${trackedFiles.length} tracked files for credential material`);
+console.log(
+  `Scanned ${trackedFiles.length} tracked files for credential material`
+);

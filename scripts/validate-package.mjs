@@ -3,7 +3,9 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-const npmCache = fs.mkdtempSync(path.join(os.tmpdir(), 'wallet-kit-npm-cache-'));
+const npmCache = fs.mkdtempSync(
+  path.join(os.tmpdir(), 'wallet-kit-npm-cache-')
+);
 let result;
 try {
   result = JSON.parse(
@@ -15,7 +17,7 @@ try {
 } finally {
   fs.rmSync(npmCache, { recursive: true, force: true });
 }
-const files = result.files.map(({ path }) => path);
+const files = result.files.map(({ path: filePath }) => filePath);
 const required = [
   'package.json',
   'wallet-kit.podspec',
@@ -29,7 +31,8 @@ const required = [
   'ios/WalletButton.mm',
   'ios/tests/WalletKitTests.mm',
 ];
-const forbidden = /(^|\/)(?:\.env(?:\..*)?|credentials?(?:\..*)?|service[-_]?account(?:\..*)?)$|\.(?:pem|key)$|(^|\/)__tests__(\/|$)/i;
+const forbidden =
+  /(^|\/)(?:\.env(?:\..*)?|credentials?(?:\..*)?|service[-_]?account(?:\..*)?)$|\.(?:pem|key)$|(^|\/)__tests__(\/|$)/i;
 
 for (const filename of required) {
   if (!files.includes(filename)) {

@@ -38,7 +38,7 @@ packageJson.packageManager = 'yarn@4.18.0';
 packageJson.dependencies = {
   ...packageJson.dependencies,
   '@azizuysal/wallet-kit': `file:${tarball}`,
-  react: reactVersion,
+  'react': reactVersion,
   'react-native': reactNativeVersion,
 };
 packageJson.devDependencies = {

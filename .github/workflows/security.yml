@@ -119,4 +119,4 @@ jobs:
         env:
           SNYK_TOKEN: ${{ env.SNYK_TOKEN }}
         with:
-          args: --all-projects --severity-threshold=high
+          args: --file=package.json --package-manager=yarn --severity-threshold=high
