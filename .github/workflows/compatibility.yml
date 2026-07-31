@@ -145,19 +145,7 @@ jobs:
           script: |
             ./gradlew :app:installRelease -PreactNativeArchitectures=x86_64 --stacktrace
             adb shell am start -W -n com.azizuysal.walletkit.example/com.microsoft.reacttestapp.MainActivity
-            sleep 10
-            adb shell uiautomator dump /sdcard/wallet-kit.xml
-            adb pull /sdcard/wallet-kit.xml "$RUNNER_TEMP/wallet-kit-before.xml"
-            grep -q 'text="Wallet Kit Example"' "$RUNNER_TEMP/wallet-kit-before.xml"
-            grep -q 'text="Invalid Input Rejected: YES"' "$RUNNER_TEMP/wallet-kit-before.xml"
-            grep -q 'content-desc="Add To Google Wallet"' "$RUNNER_TEMP/wallet-kit-before.xml"
-            read TAP_X TAP_Y < <(node -e "const fs=require('fs'); const xml=fs.readFileSync(process.argv[1],'utf8'); const match=xml.match(/content-desc=\"Add To Google Wallet\"[^>]*bounds=\"\[(\d+),(\d+)\]\[(\d+),(\d+)\]\"/); if (!match) process.exit(1); console.log((Number(match[1])+Number(match[3]))/2, (Number(match[2])+Number(match[4]))/2);" "$RUNNER_TEMP/wallet-kit-before.xml")
-            adb shell input tap "$TAP_X" "$TAP_Y"
-            sleep 3
-            adb shell uiautomator dump /sdcard/wallet-kit-after.xml
-            adb pull /sdcard/wallet-kit-after.xml "$RUNNER_TEMP/wallet-kit-after.xml"
-            grep -q 'text="Error"' "$RUNNER_TEMP/wallet-kit-after.xml"
-            adb exec-out screencap -p > "$RUNNER_TEMP/wallet-kit-android.png"
+            node "$GITHUB_WORKSPACE/scripts/android-smoke.mjs"
 
       - name: Upload Android smoke evidence
         if: matrix.rn == '0.86.2' && matrix.architecture == 'new' && success()
