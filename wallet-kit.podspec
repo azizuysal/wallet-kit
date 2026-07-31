@@ -13,8 +13,7 @@ Pod::Spec.new do |s|
   s.platforms    = { :ios => "15.1" }
   s.source       = { :git => "https://github.com/azizuysal/wallet-kit.git", :tag => "#{s.version}" }
 
-  s.source_files = "ios/**/*.{h,m,mm}"
-  s.exclude_files = "ios/tests/**/*"
+  s.source_files = "ios/*.{h,m,mm}"
   s.frameworks = "PassKit"
 
   install_modules_dependencies(s)
