@@ -127,6 +127,13 @@ jobs:
         working-directory: ${{ runner.temp }}/wallet-kit-android-${{ matrix.rn }}-${{ matrix.architecture }}/android
         run: ./gradlew :app:assembleRelease -PreactNativeArchitectures=x86_64 --stacktrace
 
+      - name: Enable KVM group permissions
+        if: matrix.rn == '0.86.2' && matrix.architecture == 'new'
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
       - name: Launch current stable app and exercise native button
         if: matrix.rn == '0.86.2' && matrix.architecture == 'new'
         uses: reactivecircus/android-emulator-runner@v2
@@ -237,7 +244,7 @@ jobs:
           DEVICE_ID=$(xcrun simctl list devices available -j | node -e "let source=''; process.stdin.on('data', chunk => source += chunk); process.stdin.on('end', () => { const runtimes=Object.values(JSON.parse(source).devices); const device=runtimes.flat().find(value => value.isAvailable && value.name.startsWith('iPhone')); if (!device) process.exit(1); process.stdout.write(device.udid); });")
           xcrun simctl boot "$DEVICE_ID" || test $? -eq 149
           xcrun simctl bootstatus "$DEVICE_ID" -b
-          xcodebuild test -workspace "$APP_DIR/ios/WalletKitExample.xcworkspace" -scheme "$SCHEME" -destination "id=$DEVICE_ID" CODE_SIGNING_ALLOWED=NO
+          xcodebuild test -workspace "$APP_DIR/ios/WalletKitExample.xcworkspace" -scheme "$SCHEME" -destination "id=$DEVICE_ID" -derivedDataPath "$RUNNER_TEMP/DerivedData-tests-${{ matrix.rn }}-${{ matrix.architecture }}" CODE_SIGNING_ALLOWED=NO
 
       - name: Launch current stable iOS app
         if: matrix.rn == '0.86.2' && matrix.architecture == 'new'

@@ -22,7 +22,7 @@ class WalletButtonManager : SimpleViewManager<WalletButtonView>(),
 
   override fun addEventEmitters(reactContext: ThemedReactContext, view: WalletButtonView) {
     view.installPressHandler {
-      UIManagerHelper.getEventDispatcher(reactContext)?.dispatchEvent(
+      UIManagerHelper.getEventDispatcherForReactTag(reactContext, view.id)?.dispatchEvent(
         WalletButtonPressEvent(UIManagerHelper.getSurfaceId(view), view.id),
       )
     }

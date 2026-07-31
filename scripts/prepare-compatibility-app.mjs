@@ -24,6 +24,13 @@ const reactNativeVersion = options.get('react-native');
 const reactVersion = options.get('react');
 const architecture = options.get('architecture');
 const includeNativeTests = options.get('native-tests') === 'true';
+const gradleDistributions = new Map([
+  ['0.76.9', '8.11.1-all'],
+  ['0.77.3', '8.11.1-all'],
+  ['0.78.3', '8.12-all'],
+  ['0.79.7', '8.13-bin'],
+  ['0.80.3', '8.14.1-bin'],
+]);
 
 if (!['legacy', 'new'].includes(architecture)) {
   throw new Error('--architecture must be legacy or new');
@@ -65,13 +72,28 @@ fs.writeFileSync(
 
 fs.writeFileSync(
   path.join(appDirectory, 'react-native.config.js'),
-  `const { configureProjects } = require('react-native-test-app');
+  `const path = require('path');
+const { configureProjects } = require('react-native-test-app');
 
 module.exports = {
   project: configureProjects({
     android: { sourceDir: 'android' },
     ios: { sourceDir: 'ios' },
   }),
+  dependencies: {
+    '@azizuysal/wallet-kit': {
+      root: path.join(
+        __dirname,
+        'node_modules',
+        '@azizuysal',
+        'wallet-kit'
+      ),
+      platforms: {
+        android: {},
+        ios: {},
+      },
+    },
+  },
 };
 `
 );
@@ -90,6 +112,29 @@ if (fs.existsSync(gradlePropertiesPath)) {
     ? properties.replace(/^newArchEnabled=.*$/m, setting)
     : `${properties.trimEnd()}\n${setting}\n`;
   fs.writeFileSync(gradlePropertiesPath, properties);
+}
+
+const gradleWrapperPropertiesPath = path.join(
+  appDirectory,
+  'android',
+  'gradle',
+  'wrapper',
+  'gradle-wrapper.properties'
+);
+const gradleDistribution = gradleDistributions.get(reactNativeVersion);
+if (gradleDistribution && fs.existsSync(gradleWrapperPropertiesPath)) {
+  const distributionUrl = `distributionUrl=https\\://services.gradle.org/distributions/gradle-${gradleDistribution}.zip`;
+  const wrapperProperties = fs.readFileSync(
+    gradleWrapperPropertiesPath,
+    'utf8'
+  );
+  if (!/^distributionUrl=.*$/m.test(wrapperProperties)) {
+    throw new Error('Gradle wrapper properties has no distributionUrl');
+  }
+  fs.writeFileSync(
+    gradleWrapperPropertiesPath,
+    wrapperProperties.replace(/^distributionUrl=.*$/m, distributionUrl)
+  );
 }
 
 const podfilePath = path.join(appDirectory, 'ios', 'Podfile');
