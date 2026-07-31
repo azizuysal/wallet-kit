@@ -63,6 +63,10 @@ using namespace facebook::react;
 
 @end
 
+extern "C" Class<RCTComponentViewProtocol> WalletButtonCls(void) {
+  return WalletButtonComponentView.class;
+}
+
 #else
 
 #import "RCTConvert+PassKit.h"
