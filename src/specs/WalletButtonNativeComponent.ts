@@ -1,13 +1,17 @@
-import type { CodegenTypes, HostComponent, ViewProps } from 'react-native';
+import type { HostComponent, ViewProps } from 'react-native';
 import { codegenNativeComponent } from 'react-native';
+import type {
+  BubblingEventHandler,
+  Int32,
+} from 'react-native/Libraries/Types/CodegenTypes';
 
 type WalletButtonPressEvent = Readonly<{
-  target: CodegenTypes.Int32;
+  target: Int32;
 }>;
 
 export interface NativeProps extends ViewProps {
-  addPassButtonStyle?: CodegenTypes.Int32;
-  onPress?: CodegenTypes.BubblingEventHandler<WalletButtonPressEvent> | null;
+  addPassButtonStyle?: Int32;
+  onPress?: BubblingEventHandler<WalletButtonPressEvent> | null;
 }
 
 export default codegenNativeComponent<NativeProps>(
