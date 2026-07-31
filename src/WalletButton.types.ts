@@ -11,8 +11,9 @@ import type { ViewProps } from 'react-native';
  *   `outline` render identically. Use whichever enum value best describes
  *   your intent in cross-platform code; both resolve to the outline variant
  *   on iOS.
- * - Android: Uses Google Wallet button themes (primary = dark,
- *   secondary = light, outline = outline), which are three distinct visuals.
+ * - Android: Uses Google's standard black button for `primary` and approved
+ *   condensed black button for `secondary`. Deprecated `outline` is an alias
+ *   of `secondary`.
  *
  * @enum
  */
@@ -23,13 +24,13 @@ export enum WalletButtonStyle {
    */
   primary = 'primary',
   /**
-   * Secondary style — black outline button on iOS (same as {@link outline}),
-   * light theme on Android.
+   * Secondary style — black outline button on iOS and condensed black button
+   * on Android.
    */
   secondary = 'secondary',
   /**
-   * Outline style — black outline button on iOS (same as {@link secondary}),
-   * outline theme on Android.
+   * @deprecated Use {@link secondary}. This compatibility alias renders
+   * identically on both platforms and will remain available throughout 2.x.
    */
   outline = 'outline',
 }

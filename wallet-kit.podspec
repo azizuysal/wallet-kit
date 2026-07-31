@@ -14,7 +14,13 @@ Pod::Spec.new do |s|
   s.source       = { :git => "https://github.com/azizuysal/wallet-kit.git", :tag => "#{s.version}" }
 
   s.source_files = "ios/**/*.{h,m,mm}"
+  s.exclude_files = "ios/tests/**/*"
   s.frameworks = "PassKit"
 
   install_modules_dependencies(s)
+
+  s.test_spec "Tests" do |tests|
+    tests.source_files = "ios/tests/**/*.{m,mm}"
+    tests.framework = "XCTest"
+  end
 end

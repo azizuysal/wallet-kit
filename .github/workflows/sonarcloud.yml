@@ -31,7 +31,7 @@ jobs:
       - name: Run ESLint
         run: |
           mkdir -p reports
-          yarn eslint . --format json --output-file reports/eslint-report.json || true
+          yarn eslint . --format json --output-file reports/eslint-report.json
 
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v7

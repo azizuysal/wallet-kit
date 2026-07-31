@@ -1,4 +1,25 @@
 {
   "name": "WalletKitExample",
-  "displayName": "WalletKitExample"
+  "displayName": "Wallet Kit Example",
+  "version": "1.0.0",
+  "singleApp": "wallet-kit",
+  "components": [
+    {
+      "appKey": "WalletKitExample",
+      "displayName": "Wallet Kit",
+      "slug": "wallet-kit"
+    }
+  ],
+  "resources": {
+    "android": ["dist/main.android.jsbundle"],
+    "ios": ["dist/main.ios.jsbundle", "samples/ios"]
+  },
+  "android": {
+    "package": "com.azizuysal.walletkit.example",
+    "versionCode": 1
+  },
+  "ios": {
+    "bundleIdentifier": "com.azizuysal.walletkit.example",
+    "buildNumber": "1"
+  }
 }

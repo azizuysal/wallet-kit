@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "platforms": {
+    "ios": {
+      "minimumVersion": "15.1"
+    },
+    "android": {
+      "minimumApi": 24,
+      "compileApi": 36,
+      "java": 17
+    }
+  },
+  "reactNative": [
+    {
+      "version": "0.76.9",
+      "react": "18.2.0",
+      "architectures": ["legacy", "new"]
+    },
+    {
+      "version": "0.77.3",
+      "react": "18.2.0",
+      "architectures": ["legacy", "new"]
+    },
+    {
+      "version": "0.78.3",
+      "react": "19.0.0",
+      "architectures": ["legacy", "new"]
+    },
+    {
+      "version": "0.79.7",
+      "react": "19.0.0",
+      "architectures": ["legacy", "new"]
+    },
+    {
+      "version": "0.80.3",
+      "react": "19.1.0",
+      "architectures": ["legacy", "new"]
+    },
+    {
+      "version": "0.81.6",
+      "react": "19.1.4",
+      "architectures": ["legacy", "new"]
+    },
+    { "version": "0.82.1", "react": "19.1.1", "architectures": ["new"] },
+    { "version": "0.83.10", "react": "19.2.0", "architectures": ["new"] },
+    { "version": "0.84.1", "react": "19.2.3", "architectures": ["new"] },
+    { "version": "0.85.3", "react": "19.2.3", "architectures": ["new"] },
+    { "version": "0.86.2", "react": "19.2.5", "architectures": ["new"] }
+  ]
+}

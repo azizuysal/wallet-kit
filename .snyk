@@ -1,13 +1,6 @@
 # Snyk (https://snyk.io) policy file
 version: v1.25.0
 
-# Exclude developer CLI scripts from code analysis
-# These are local tools that read/write files from user-provided paths by design
-exclude:
-  code:
-    - scripts/generate-jwt.js
-    - src/__tests__/**
-
 ignore: {}
 
 # Patch settings

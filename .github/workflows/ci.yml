@@ -11,7 +11,8 @@ on:
       - checks_requested
 
 jobs:
-  lint:
+  verify:
+    name: Lint, test, build, docs, Codegen, and package
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -20,23 +21,8 @@ jobs:
       - name: Setup
         uses: ./.github/actions/setup
 
-      - name: Lint files
-        run: yarn lint
-
-      - name: Typecheck files
-        run: yarn typecheck
-
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup
-        uses: ./.github/actions/setup
-
-      - name: Run unit tests with coverage
-        run: yarn test --maxWorkers=2 --coverage --coverageReporters=json --coverageReporters=lcov --coverageReporters=text --coverageReporters=text-summary
+      - name: Run required checks
+        run: corepack yarn verify
 
       - name: Upload coverage reports to Codecov
         if: always()
@@ -48,14 +34,5 @@ jobs:
           fail_ci_if_error: false
           verbose: true
 
-  build-library:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup
-        uses: ./.github/actions/setup
-
-      - name: Build package
-        run: yarn prepare
+      - name: Confirm the package dry run
+        run: npm pack --dry-run

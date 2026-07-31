@@ -1,23 +1,42 @@
-# Wallet Kit Example App
+# Wallet Kit React Native Test App
 
-This directory contains a working example of the `@azizuysal/wallet-kit` library.
+The example uses `react-native-test-app` rather than checked-in application templates. It exercises availability, final promise outcomes, deprecated event compatibility, and every native button style.
 
-## Getting Started
+From the repository root:
 
-For instructions on how to run this example app, please see the [Example App section of the main README.md file](../README.md#example-app).
+```sh
+mise exec -- corepack yarn install --immutable
+mise exec -- corepack yarn workspace @azizuysal/wallet-kit-example build:android
+mise exec -- corepack yarn workspace @azizuysal/wallet-kit-example build:ios
+mise exec -- corepack yarn workspace @azizuysal/wallet-kit-example configure --force --platforms android ios
+```
 
-## Android Setup: Creating a Test JWT
+The production bundles are included as React Native Test App resources, so generated Release builds run without a Metro server.
 
-The Android example app is hardcoded to load a JWT from `android/app/src/main/assets/samples/demo.jwt`.
+Run Android:
 
-To run the example, you must generate your own signed JWT and save it to that location.
+```sh
+mise exec -- corepack yarn example android
+```
 
-1.  **Generate a JWT:** Follow the [JWT Generation Guide](../scripts/README.md) to generate a new JWT.
+Install iOS pods and run iOS:
 
-2.  **Save the JWT:** Save the generated JWT to the following path:
+```sh
+cd example
+mise exec -- bundle exec pod install --project-directory=ios
+mise exec -- corepack yarn ios
+```
 
-    ```
-    example/android/app/src/main/assets/samples/demo.jwt
-    ```
+## iOS samples
 
-    You may need to create the `samples` directory if it does not exist.
+The non-secret `.pkpass` fixtures are in `samples/ios` and are included through `app.json`.
+
+## Android test JWT
+
+Android intentionally has no bundled JWT. Generate a JWT with dedicated test credentials by following [`scripts/README.md`](../scripts/README.md), then copy the output to:
+
+```text
+example/android/app/src/main/assets/samples/demo.jwt
+```
+
+The native project is generated locally, so create the directories if needed. JWT files and credential files are ignored by Git. Never use or commit production issuer credentials.

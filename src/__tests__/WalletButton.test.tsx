@@ -34,7 +34,7 @@ const platformSuites: Array<{
     mapping: {
       [WalletButtonStyle.primary]: 0,
       [WalletButtonStyle.secondary]: 1,
-      [WalletButtonStyle.outline]: 2,
+      [WalletButtonStyle.outline]: 1,
     },
   },
 ];
@@ -163,8 +163,8 @@ describe.each(platformSuites)(
   }
 );
 
-describe('WalletButton platform outline mapping', () => {
-  it('maps outline differently on iOS (1) vs Android (2)', () => {
+describe('WalletButton outline compatibility alias', () => {
+  it('maps outline to secondary (1) on both platforms', () => {
     const { UNSAFE_root: iosRoot } = render(
       <IosWalletButton addPassButtonStyle={WalletButtonStyle.outline} />
     );
@@ -179,6 +179,6 @@ describe('WalletButton platform outline mapping', () => {
     expect(
       (androidRoot.findByType('WalletButton' as never).props as NativeProps)
         .addPassButtonStyle
-    ).toBe(2);
+    ).toBe(1);
   });
 });

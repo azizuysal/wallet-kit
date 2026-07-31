@@ -4,33 +4,40 @@ All notable changes to this project will be documented in this file. See [standa
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-07-31
+
 ### Breaking Changes
 
 - **API**: `addPass` and `addPasses` now return `Promise<boolean>` that resolves with the add outcome directly (`true` when every pass was newly added, `false` on cancel or when a pass was already in the wallet). The 1.x versions returned `Promise<void>` and delivered the outcome only via the `AddPassCompleted` event. The event is retained as a secondary channel; the Promise return value is the primary API.
-  - Migration: `await WalletKit.addPass(data)` can now be used directly to get the outcome. Existing `AddPassCompleted` listeners continue to fire.
-- **Peer dependencies**: `react-native` tightened from `*` to `>=0.80.0`; `react` tightened from `*` to `>=19.1.0`. Consumers on RN `< 0.80` must stay on `@azizuysal/wallet-kit@^1`.
-- **iOS platform floor**: `wallet-kit.podspec` raised from `ios 11.0` to `ios 15.1` (matches the RN 0.80–0.85 floor).
-- **Android build floor**: `minSdkVersion` raised from 21 to 24 (RN 0.76+ floor). `compileSdk`/`targetSdk` moved to 36. `kotlinVersion` moved to 2.1.20. AGP moved to 8.12. Java source/target moved to 17.
-- **iOS**: `addPass`/`addPasses` now reject concurrent in-flight calls with `ERR_WALLET_IN_PROGRESS` (previously an iOS-specific latent bug — Phase 1 had this guard on Android only).
+- **Peer dependencies**: React Native now requires `>=0.76.0` and React requires `>=18.2.0`. React Native below 0.76 remains on Wallet Kit 1.x.
+- **Platform floors**: iOS is 15.1; Android `minSdk` is 24; Java source and target compatibility are 17.
+- **JWT tool**: removed the unsafe `--privateKey` argument. Signing credentials must come from `--keyFile`, a service-account JSON path, or `GOOGLE_WALLET_PRIVATE_KEY`.
 
 ### Features
 
-- New TurboModule + Fabric Codegen spec so the library runs natively on the New Architecture from RN 0.82+ without going through the interop layer. Bridge-era native code is retained behind `#ifdef RCT_NEW_ARCH_ENABLED` for 0.80/0.81 old-arch consumers.
-- Compatibility matrix published in README: tested against RN 0.80, 0.81, 0.82, 0.83, 0.84, 0.85 (per the CI matrix added in P2-c).
+- Added genuine Codegen TurboModule and Fabric implementations for the New Architecture while retaining bridge module and view-manager adapters through React Native 0.81.
+- Added a manifest-backed packed-consumer matrix for exact React Native patches 0.76.9 through 0.86.2, with both architectures through 0.81 and New Architecture only from 0.82.
+- Added native Android and iOS lifecycle, outcome, concurrency, availability, presentation, and resource tests.
+- Added `WalletButtonStyle.secondary`. Deprecated `outline` remains an alias of `secondary` throughout 2.x.
+
+### Bug Fixes
+
+- **iOS**: add-pass promises now settle exactly once after delegate completion or adaptive dismissal, use a scene-aware presenter, reject unavailable or failed presentation states with stable codes, and never dismiss unrelated host modals.
+- **Android**: activity results use the current React Native signature, pending calls survive no silent overwrite, and host destruction rejects active work.
+- **Android button**: `primary` renders Google's standard black resource; `secondary` and `outline` render the condensed black resource with a single accessible control.
+- **Android resources**: corrected invalid locale qualifiers and separated Brazilian and European Portuguese resources.
 
 ### Chores
 
-- Upgraded the in-repo example app to React Native 0.85.2, React 19.2.5.
-- Upgraded library devDependencies to match: `@react-native/eslint-config` 0.85.2, `@react-native/jest-preset` 0.85.2, `@react-native/babel-preset` 0.85.2, `@react-native-community/cli` 20.1.3, ESLint 9 (flat config), TypeScript 5.9, Commitlint 20, Prettier 3.8.
-- Removed vestigial `turbo` devDependency and `turbo.json`.
-- Removed the `create-react-native-library.type: "legacy-module"` package.json block.
-- Split `ios/UIViewController+WalletKit.h`'s inline `@implementation` into a proper `.h` / `.mm` pair to avoid duplicate-symbol risk from the Codegen work.
-- Migrated `src/__tests__/WalletButton.test.tsx` from `react-test-renderer` to `@testing-library/react-native` (React 19 compat).
-- Upgraded all GitHub Actions and added a CI matrix covering 6 RN versions × 2 OS.
+- Migrated the development workspace to Yarn 4.18.0, React Native 0.86.2, React Native Builder Bob 0.43.0, and React Native Test App 5.4.6.
+- Removed hard Android Gradle Plugin and Kotlin plugin pins so the library inherits the host React Native toolchain.
+- Replaced generated example native templates with React Native Test App configuration.
+- Added immutable installation, package-content, tracked-secret, Android resource, Codegen, OSV Scanner 2.3.8, CodeQL, dependency-review, and provenance release gates.
 
-### Removed
+### Compatibility
 
-- Bridge-era-only code paths that assumed `newArchEnabled=false` was always possible. Bridge code is still present on the iOS/Android sides behind `#ifdef` / `newArchEnabled` checks, but it is no longer the default build path.
+- `AddPassCompleted` and `createWalletEventEmitter` are deprecated for outcome handling but remain available throughout 2.x and may be removed only in 3.x.
+- Later React Native versions remain installable through unbounded peer metadata but are not advertised as verified until promoted into the blocking manifest.
 
 ## [1.1.0] - 2026-04-23
 
@@ -141,7 +148,8 @@ All notable changes to this project will be documented in this file. See [standa
 - Event handling system
 - Error handling with specific error codes
 
-[Unreleased]: https://github.com/azizuysal/wallet-kit/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/azizuysal/wallet-kit/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/azizuysal/wallet-kit/compare/v1.1.0...v2.0.0
 [1.1.0]: https://github.com/azizuysal/wallet-kit/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/azizuysal/wallet-kit/compare/v0.2.1...v1.0.0
 [0.2.1]: https://github.com/azizuysal/wallet-kit/compare/v0.2.0...v0.2.1

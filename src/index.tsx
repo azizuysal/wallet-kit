@@ -11,8 +11,8 @@ const LINKING_ERROR =
   '- You are not using Expo Go\n';
 
 // Prefer the TurboModule resolved via the Codegen spec (new arch). Fall back
-// to the bridge-era registration on NativeModules for RN 0.80/0.81 consumers
-// still running the old architecture. If neither is present the package is
+// to the bridge-era registration on NativeModules for RN 0.76-0.81 consumers
+// still running the Legacy Architecture. If neither is present the package is
 // not linked correctly; a Proxy surfaces LINKING_ERROR on first access.
 const WalletKit: NativeWalletKitSpec =
   NativeWalletKit ??
@@ -26,7 +26,6 @@ const WalletKit: NativeWalletKitSpec =
 /**
  * Error codes that can be returned by wallet operations.
  *
- * @remarks
  * - `INVALID_PASS` - The pass data is missing, empty, or not in a recognized
  *   wallet pass format (neither a base64-encoded .pkpass nor a JWT).
  * - `UNSUPPORTED_VERSION` - The pass version is not supported (iOS only).
@@ -34,12 +33,11 @@ const WalletKit: NativeWalletKitSpec =
  * - `ERR_WALLET_ACTIVITY_NULL` - Android-specific: Activity context is null.
  * - `ERR_WALLET_MULTIPLE_NOT_SUPPORTED` - Android-specific: the Google Wallet
  *   API only accepts a single JWT per call. Combine multiple passes into one
- *   JWT on your server before calling {@link addPasses}.
+ *   JWT on your server before calling {@link WalletKitModule.addPasses}.
  * - `ERR_WALLET_IN_PROGRESS` - A previous add-pass call is still awaiting a
  *   result. Wait for it to resolve or reject before issuing another.
  * - `ERR_WALLET_UNKNOWN` - An unexpected error occurred.
  *
- * @remarks
  * User cancellation is **not** reported as a rejection on either platform.
  * The add-pass promise resolves with `false` when the user cancels; the
  * same outcome is also emitted via the `AddPassCompleted` event for
@@ -141,9 +139,8 @@ export const detectPassType = (
 
   // Trim leading/trailing whitespace so JWTs with surrounding whitespace are
   // recognised here. Android native calls `passData.trim()` before passing
-  // the JWT to Google Wallet, and iOS native tolerates embedded whitespace
-  // via NSDataBase64DecodingIgnoreUnknownCharacters; matching that tolerance
-  // keeps the JS validator from rejecting inputs the native layer accepts.
+  // the JWT to Google Wallet. The iOS path normalizes whitespace separately
+  // before strict base64 decoding.
   const trimmed = passData.trim();
   if (trimmed.length === 0) {
     return 'unknown';
@@ -159,12 +156,9 @@ export const detectPassType = (
     }
   }
 
-  // Strip all whitespace (including interior newlines) — iOS native uses
-  // NSDataBase64DecodingIgnoreUnknownCharacters, which tolerates line-wrapped
-  // base64 that is common in server-generated payloads. Matching that
-  // tolerance keeps the JS validator from rejecting inputs the native layer
-  // would accept. `trimmed` above handled surrounding whitespace for the
-  // JWT check; here we also drop interior whitespace before base64 decoding.
+  // Strip whitespace, including interior newlines. The iOS adapter performs
+  // the same normalization before strict base64 decoding so line-wrapped
+  // pass data remains supported without accepting arbitrary invalid bytes.
   const sanitized = trimmed.replace(/\s+/g, '');
   // 8 base64 characters (a full two-block chunk, no padding needed) decode
   // to 6 bytes — enough for the 4-byte ZIP signature. Anything shorter
@@ -304,6 +298,10 @@ export const WalletKitModule = {
 
 /**
  * Creates an event emitter for listening to wallet events.
+ *
+ * @deprecated Use the boolean returned by {@link WalletKitModule.addPass} or
+ * {@link WalletKitModule.addPasses} for operation outcomes. This event API is
+ * retained for compatibility throughout 2.x and may be removed in 3.x.
  *
  * @remarks
  * The emitted `AddPassCompleted` event payload is a raw `boolean` indicating

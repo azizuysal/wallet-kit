@@ -5,14 +5,33 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
 jobs:
-  release:
+  compatibility:
+    name: Full compatibility gate
+    uses: ./.github/workflows/compatibility.yml
+    with:
+      full-matrix: true
+
+  security:
+    name: Security gate
+    uses: ./.github/workflows/security.yml
+    secrets: inherit
+
+  publish:
+    name: Publish npm package, then GitHub release
+    needs: [compatibility, security]
     runs-on: ubuntu-latest
+    environment: npm-production
     permissions:
       contents: write
       id-token: write
     steps:
-      - name: Checkout
+      - name: Checkout tag
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
@@ -20,48 +39,40 @@ jobs:
       - name: Setup
         uses: ./.github/actions/setup
 
-      - name: Verify tests pass
-        run: yarn test --coverage
-
-      - name: Verify build
-        run: yarn prepare
-
-      - name: Verify tag matches package.json version
+      - name: Verify tag matches package version
         run: |
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
           TAG_VERSION=${GITHUB_REF#refs/tags/v}
           if [ "$PACKAGE_VERSION" != "$TAG_VERSION" ]; then
-            echo "Error: package.json version ($PACKAGE_VERSION) does not match tag version ($TAG_VERSION)"
+            echo "package.json version ($PACKAGE_VERSION) does not match tag version ($TAG_VERSION)"
             exit 1
           fi
 
-      - name: Create GitHub Release
+      - name: Run final package checks
+        run: corepack yarn verify
+
+      - name: Configure npm registry
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+
+      - name: Publish package with provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [[ "$GITHUB_REF_NAME" == *-* ]]; then
+            npm publish --access public --provenance --tag next
+          else
+            npm publish --access public --provenance
+          fi
+
+      - name: Create GitHub release after npm succeeds
         uses: softprops/action-gh-release@v3
         with:
           generate_release_notes: true
           draft: false
-          prerelease: ${{ contains(github.ref, '-rc') || contains(github.ref, '-beta') || contains(github.ref, '-alpha') }}
+          prerelease: ${{ contains(github.ref_name, '-') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Setup Node for NPM
-        uses: actions/setup-node@v6
-        with:
-          node-version-file: .nvmrc
-          registry-url: 'https://registry.npmjs.org'
-
-      - name: Publish to NPM
-        run: |
-          # Check if this is a prerelease
-          if [[ "${{ github.ref }}" == *"-rc"* ]] || [[ "${{ github.ref }}" == *"-beta"* ]] || [[ "${{ github.ref }}" == *"-alpha"* ]]; then
-            npm publish --access public --tag next
-          else
-            npm publish --access public
-          fi
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Add package provenance
-        run: |
-          echo "Package published with provenance"
-          echo "View on NPM: https://www.npmjs.com/package/@azizuysal/wallet-kit"

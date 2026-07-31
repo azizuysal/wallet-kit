@@ -1,30 +1,30 @@
 #!/usr/bin/env node
 
-/**
- * JWT Generator for Google Wallet Testing
- *
- * This script generates test JWTs for Google Wallet passes.
- */
-
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
 
+const dangerousKeys = new Set(['__proto__', 'constructor', 'prototype']);
+
+const isPlainObject = (value) =>
+  value !== null && typeof value === 'object' && !Array.isArray(value);
+
 const deepMerge = (target, source) => {
-  for (const key in source) {
-    if (source[key] instanceof Object && key in target) {
-      Object.assign(source[key], deepMerge(target[key], source[key]));
+  for (const [key, value] of Object.entries(source)) {
+    if (dangerousKeys.has(key)) {
+      throw new Error(`Unsafe payload property: ${key}`);
+    }
+    if (isPlainObject(value) && isPlainObject(target[key])) {
+      deepMerge(target[key], value);
+    } else {
+      target[key] = value;
     }
   }
-  Object.assign(target || {}, source);
   return target;
 };
 
-/**
- * Base64url encode
- */
 function base64url(buffer) {
   return buffer
     .toString('base64')
@@ -33,36 +33,19 @@ function base64url(buffer) {
     .replace(/[/]/g, '_');
 }
 
-/**
- * Create JWT header
- */
-function createHeader() {
-  return {
-    alg: 'RS256',
-    typ: 'JWT',
-  };
-}
-
-/**
- * Create JWT claims for a pass
- */
 function createPassClaims(config, defaultPayloadPath) {
   const classId =
     config.classId || `${config.issuerId}.demo_class_${Date.now()}`;
   const objectId =
     config.objectId || `${config.issuerId}.demo_object_${Date.now()}`;
-
-  const now = Math.floor(Date.now() / 1000);
-
   const defaultPayload = JSON.parse(
     fs.readFileSync(defaultPayloadPath, 'utf8')
   );
-
   const claims = {
     iss: config.serviceAccountEmail,
     aud: 'google',
     typ: 'savetowallet',
-    iat: now,
+    iat: Math.floor(Date.now() / 1000),
     origins: [],
     payload: defaultPayload.payload,
   };
@@ -95,57 +78,92 @@ function createPassClaims(config, defaultPayloadPath) {
     }
   }
 
-  if (config.payloadFile) {
-    const customPayload = JSON.parse(
-      fs.readFileSync(config.payloadFile, 'utf8')
+  if (!config.payloadFile) {
+    return claims;
+  }
+  const customPayload = JSON.parse(fs.readFileSync(config.payloadFile, 'utf8'));
+  return deepMerge(claims, customPayload);
+}
+
+function loadSigningCredentials(config) {
+  const environmentKey = process.env.GOOGLE_WALLET_PRIVATE_KEY;
+  if (environmentKey && config.keyFile) {
+    throw new Error(
+      'Signing credentials are ambiguous: set either GOOGLE_WALLET_PRIVATE_KEY or --keyFile, not both'
     );
-    return deepMerge(claims, customPayload);
+  }
+  if (!environmentKey && !config.keyFile) {
+    throw new Error(
+      'Signing credentials are missing: set GOOGLE_WALLET_PRIVATE_KEY or provide --keyFile'
+    );
   }
 
-  return claims;
-}
-
-/**
- * Get private key from config
- */
-function getPrivateKey(config) {
-  if (config.privateKey) {
-    console.log('✅ Using private key from config or environment variable');
-    return config.privateKey;
-  }
-
-  if (config.keyFile) {
-    console.log(`✅ Loading private key from file: ${config.keyFile}`);
-    const keyPath = config.keyFile;
-
-    if (keyPath.endsWith('.json')) {
-      try {
-        const serviceAccount = JSON.parse(fs.readFileSync(keyPath, 'utf8'));
-        if (serviceAccount.private_key) {
-          return serviceAccount.private_key;
-        } else {
-          console.error('❌ No private_key found in JSON file');
-          process.exit(1);
-        }
-      } catch (error) {
-        console.error('❌ Error reading JSON key file:', error.message);
-        process.exit(1);
-      }
-    } else {
-      return fs.readFileSync(keyPath, 'utf8');
+  if (environmentKey) {
+    if (!config.serviceAccountEmail) {
+      throw new Error(
+        'A service account email is required with GOOGLE_WALLET_PRIVATE_KEY'
+      );
     }
+    return {
+      privateKey: environmentKey,
+      serviceAccountEmail: config.serviceAccountEmail,
+    };
   }
 
-  console.error('\n⚠️  No private key found!');
-  process.exit(1);
+  const keyPath = path.resolve(config.keyFile);
+  let source;
+  try {
+    source = fs.readFileSync(keyPath, 'utf8');
+  } catch {
+    throw new Error(`Signing credential file is unreadable: ${keyPath}`);
+  }
+
+  if (!keyPath.toLowerCase().endsWith('.json')) {
+    if (!config.serviceAccountEmail) {
+      throw new Error(
+        'A service account email is required with a PEM key file'
+      );
+    }
+    return {
+      privateKey: source,
+      serviceAccountEmail: config.serviceAccountEmail,
+    };
+  }
+
+  let serviceAccount;
+  try {
+    serviceAccount = JSON.parse(source);
+  } catch {
+    throw new Error(`Service-account JSON is invalid: ${keyPath}`);
+  }
+  if (
+    typeof serviceAccount.private_key !== 'string' ||
+    serviceAccount.private_key.length === 0 ||
+    typeof serviceAccount.client_email !== 'string' ||
+    serviceAccount.client_email.length === 0
+  ) {
+    throw new Error(
+      `Service-account JSON must contain private_key and client_email: ${keyPath}`
+    );
+  }
+  if (
+    config.serviceAccountEmail &&
+    config.serviceAccountEmail !== serviceAccount.client_email
+  ) {
+    throw new Error(
+      'The configured service account email does not match the credential file'
+    );
+  }
+  return {
+    privateKey: serviceAccount.private_key,
+    serviceAccountEmail: serviceAccount.client_email,
+  };
 }
 
-/**
- * Sign JWT with RS256
- */
 function signJWT(claims, privateKey) {
-  const header = createHeader();
-  const encodedHeader = base64url(Buffer.from(JSON.stringify(header)));
+  const encodedHeader = base64url(
+    Buffer.from(JSON.stringify({ alg: 'RS256', typ: 'JWT' }))
+  );
   const encodedClaims = base64url(Buffer.from(JSON.stringify(claims)));
   const signingInput = `${encodedHeader}.${encodedClaims}`;
   const sign = crypto.createSign('RSA-SHA256');
@@ -156,28 +174,13 @@ function signJWT(claims, privateKey) {
     format: 'pem',
     type: 'pkcs8',
   });
-  const encodedSignature = base64url(signature);
-  return `${signingInput}.${encodedSignature}`;
+  return `${signingInput}.${base64url(signature)}`;
 }
 
-/**
- * Main function
- */
 function main() {
-  const envConfig = {
-    issuerId: process.env.GOOGLE_WALLET_ISSUER_ID,
-    serviceAccountEmail: process.env.GOOGLE_WALLET_SERVICE_ACCOUNT,
-    classId: process.env.GOOGLE_WALLET_CLASS_ID,
-    privateKey: process.env.GOOGLE_WALLET_PRIVATE_KEY,
-    keyFile: process.env.GOOGLE_WALLET_KEY_FILE,
-    demoMode: process.env.GOOGLE_WALLET_DEMO_MODE
-      ? process.env.GOOGLE_WALLET_DEMO_MODE !== 'false'
-      : undefined,
-  };
-
   const argv = yargs(hideBin(process.argv))
-    .config(envConfig)
     .usage('Usage: $0 [options]')
+    .strict()
     .option('type', {
       alias: 't',
       describe: 'Type of pass to generate',
@@ -188,6 +191,7 @@ function main() {
       alias: 'o',
       describe: 'Path to save the JWT to',
       type: 'string',
+      demandOption: true,
     })
     .option('payloadFile', {
       alias: 'p',
@@ -197,67 +201,52 @@ function main() {
     .option('issuerId', {
       describe: 'Google Wallet Issuer ID',
       type: 'string',
+      default: process.env.GOOGLE_WALLET_ISSUER_ID,
+      demandOption: true,
     })
     .option('serviceAccountEmail', {
       describe: 'Google Cloud service account email',
       type: 'string',
+      default: process.env.GOOGLE_WALLET_SERVICE_ACCOUNT,
     })
     .option('classId', {
       describe: 'Google Wallet Class ID',
       type: 'string',
-    })
-    .option('privateKey', {
-      describe: 'The private key itself',
-      type: 'string',
+      default: process.env.GOOGLE_WALLET_CLASS_ID,
     })
     .option('keyFile', {
-      describe: 'Path to the private key file',
+      describe: 'Path to a PEM key or service-account JSON file',
       type: 'string',
+      default: process.env.GOOGLE_WALLET_KEY_FILE,
     })
     .option('demoMode', {
-      describe: 'Enable or disable demo mode',
+      describe: 'Mark generated pass content as test-only',
       type: 'boolean',
-      default: true,
+      default: process.env.GOOGLE_WALLET_DEMO_MODE === 'true',
     })
-    .demandOption(
-      ['issuerId', 'serviceAccountEmail'],
-      'Please provide an issuer ID and service account email'
-    )
-    .help().argv;
+    .help()
+    .parseSync();
 
-  let claims;
-  let defaultPayloadPath;
-
-  switch (argv.type) {
-    case 'event':
-      defaultPayloadPath = path.join(__dirname, 'event-payload.json');
-      console.log('📎 Generating Event Ticket JWT...');
-      break;
-    case 'loyalty':
-      defaultPayloadPath = path.join(__dirname, 'loyalty-payload.json');
-      console.log('💳 Generating Loyalty Card JWT...');
-      break;
-    case 'generic':
-    default:
-      defaultPayloadPath = path.join(__dirname, 'generic-payload.json');
-      console.log('🎫 Generating Generic Pass JWT...');
-      break;
-  }
-
-  claims = createPassClaims(argv, defaultPayloadPath);
-
-  const privateKey = getPrivateKey(argv);
-  const jwt = signJWT(claims, privateKey);
-
-  if (argv.output) {
+  try {
+    const credentials = loadSigningCredentials(argv);
+    const payloadFilename =
+      argv.type === 'event'
+        ? 'event-payload.json'
+        : argv.type === 'loyalty'
+          ? 'loyalty-payload.json'
+          : 'generic-payload.json';
+    const claims = createPassClaims(
+      { ...argv, serviceAccountEmail: credentials.serviceAccountEmail },
+      path.join(__dirname, payloadFilename)
+    );
+    const jwt = signJWT(claims, credentials.privateKey);
     const outputPath = path.resolve(argv.output);
-    fs.writeFileSync(outputPath, jwt);
-    console.log(`✅ JWT saved to: ${outputPath}`);
-  } else {
-    console.log('\n📋 JWT Token:');
-    console.log('─'.repeat(80));
-    console.log(jwt);
-    console.log('─'.repeat(80));
+    fs.writeFileSync(outputPath, jwt, { mode: 0o600 });
+    fs.chmodSync(outputPath, 0o600);
+    console.log(`JWT saved to ${outputPath}`);
+  } catch (error) {
+    console.error(error.message);
+    process.exitCode = 1;
   }
 }
 

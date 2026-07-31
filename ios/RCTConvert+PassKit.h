@@ -11,7 +11,9 @@
 @implementation RCTConvert(PassKit)
 
 + (PKAddPassButtonStyle)PKAddPassButtonStyle: (NSNumber *)style {
-    return (PKAddPassButtonStyle)[style intValue];
+    return [style intValue] == 0
+        ? PKAddPassButtonStyleBlack
+        : PKAddPassButtonStyleBlackOutline;
 }
 
 @end

@@ -6,7 +6,7 @@ import NativeWalletButton from './specs/WalletButtonNativeComponent';
 const styleMap: Record<WalletButtonStyle, number> = {
   [WalletButtonStyle.primary]: 0,
   [WalletButtonStyle.secondary]: 1,
-  [WalletButtonStyle.outline]: 2,
+  [WalletButtonStyle.outline]: 1,
 };
 
 /**

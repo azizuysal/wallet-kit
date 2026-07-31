@@ -1,83 +1,71 @@
-# Google Wallet JWT Generator
+# Google Wallet JWT generator
 
-This script generates signed JWTs for adding passes to Google Wallet. It is designed for testing and development purposes and can be used to create generic passes, event tickets, and loyalty cards.
+`generate-jwt.js` creates signed Google Wallet JWT files for local development and dedicated test issuers. Production applications should generate JWTs in a trusted backend. Never ship service-account credentials or private keys in a mobile application.
 
-## Features
+The command requires an output path and exactly one credential source. It writes the JWT with mode `0600` and never prints the JWT or key material.
 
-- **Multiple Pass Types:** Generate JWTs for generic passes, event tickets, and loyalty cards.
-- **Flexible Configuration:** Configure the script using environment variables, a configuration file, or command-line arguments.
-- **Custom Payloads:** Use the default pass payloads as a starting point or provide your own custom payload file to create unique passes.
-- **Automatic Help Message:** The script provides a detailed help message with all the available options.
+## Credential sources
 
-## Configuration
+Choose one:
 
-The script can be configured in three ways, in the following order of precedence:
+- `--keyFile /path/to/service-account.json`: reads both `private_key` and `client_email` from Google service-account JSON.
+- `--keyFile /path/to/private-key.pem` plus `--serviceAccountEmail`: reads a PEM key and an explicitly supplied account email.
+- `GOOGLE_WALLET_PRIVATE_KEY` plus `GOOGLE_WALLET_SERVICE_ACCOUNT`: reads the key from the environment and the email from the argument or environment.
 
-1.  **Command-line arguments:** (e.g., `--issuerId 12345`)
-2.  **Environment variables:** (e.g., `export GOOGLE_WALLET_ISSUER_ID=12345`)
-3.  **Configuration file:** (e.g., a `jwt.config.json` file)
+The command fails when credential sources are missing, ambiguous, unreadable, invalid, or have conflicting account emails. The former `--privateKey` command-line option is not supported because command arguments can be exposed in process listings and shell history.
 
-### Command-line Options
+Store local credential files outside the repository. `.env*`, PEM/key files, and common credential filenames are ignored and rejected by tracked-file and package-content scans.
 
-| Option                  | Alias | Description                                                 | Type      | Default   | Required |
-| ----------------------- | ----- | ----------------------------------------------------------- | --------- | --------- | -------- |
-| `--type`                | `-t`  | Type of pass to generate (choices: generic, event, loyalty) | `string`  | `generic` |          |
-| `--output`              | `-o`  | Path to save the JWT to                                     | `string`  |           |          |
-| `--payloadFile`         | `-p`  | Path to a JSON file with custom payload data                | `string`  |           |          |
-| `--issuerId`            |       | Google Wallet Issuer ID                                     | `string`  |           | ✓        |
-| `--serviceAccountEmail` |       | Google Cloud service account email                          | `string`  |           | ✓        |
-| `--classId`             |       | Google Wallet Class ID                                      | `string`  |           |          |
-| `--privateKey`          |       | The private key itself                                      | `string`  |           |          |
-| `--keyFile`             |       | Path to the private key file                                | `string`  |           |          |
-| `--demoMode`            |       | Enable or disable demo mode                                 | `boolean` | `true`    |          |
+## Options
 
-### Environment Variables
+| Option                  | Alias | Description                            | Default                         |
+| ----------------------- | ----- | -------------------------------------- | ------------------------------- |
+| `--type`                | `-t`  | `generic`, `event`, or `loyalty`       | `generic`                       |
+| `--output`              | `-o`  | Required JWT output path               | none                            |
+| `--payloadFile`         | `-p`  | JSON merged into the selected template | none                            |
+| `--issuerId`            |       | Required Google Wallet issuer ID       | `GOOGLE_WALLET_ISSUER_ID`       |
+| `--serviceAccountEmail` |       | Service-account email                  | `GOOGLE_WALLET_SERVICE_ACCOUNT` |
+| `--classId`             |       | Existing or test class ID              | `GOOGLE_WALLET_CLASS_ID`        |
+| `--keyFile`             |       | PEM or service-account JSON path       | `GOOGLE_WALLET_KEY_FILE`        |
+| `--demoMode`            |       | Mark generated content as test-only    | `false`                         |
 
-You can also configure the script using environment variables with the `GOOGLE_WALLET_` prefix. For example:
+## Examples
 
-```bash
-export GOOGLE_WALLET_ISSUER_ID="YOUR_ISSUER_ID"
-export GOOGLE_WALLET_SERVICE_ACCOUNT="YOUR_SERVICE_ACCOUNT_EMAIL"
-export GOOGLE_WALLET_KEY_FILE="/path/to/your/private-key.json"
-export GOOGLE_WALLET_CLASS_ID="YOUR_ISSUER_ID.pass-class-01"
+With service-account JSON:
+
+```sh
+node scripts/generate-jwt.js \
+  --issuerId 1234567890 \
+  --keyFile /secure/test-wallet-service-account.json \
+  --output /tmp/generic-test.jwt \
+  --demoMode
 ```
 
-## Usage
+With a PEM file:
 
-### Generate a Default Generic Pass
-
-```bash
-node scripts/generate-jwt.js
+```sh
+node scripts/generate-jwt.js \
+  --type event \
+  --issuerId 1234567890 \
+  --serviceAccountEmail wallet-test@example-project.iam.gserviceaccount.com \
+  --keyFile /secure/wallet-test.pem \
+  --output /tmp/event-test.jwt \
+  --demoMode
 ```
 
-### Generate an Event Ticket
+With environment-managed credentials:
 
-```bash
-node scripts/generate-jwt.js --type event
+```sh
+GOOGLE_WALLET_PRIVATE_KEY="$GOOGLE_WALLET_TEST_PRIVATE_KEY" \
+GOOGLE_WALLET_SERVICE_ACCOUNT="wallet-test@example-project.iam.gserviceaccount.com" \
+GOOGLE_WALLET_ISSUER_ID="1234567890" \
+node scripts/generate-jwt.js --output /tmp/loyalty-test.jwt --type loyalty --demoMode
 ```
 
-### Generate a Loyalty Card and Save to a File
+Do not paste private keys directly into a terminal command or chat. Load them from a local secret manager or protected environment file.
 
-```bash
-node scripts/generate-jwt.js --type loyalty --output loyalty.jwt
-```
+## Payload templates
 
-### Use a Custom Payload File
+The default templates are `generic-payload.json`, `event-payload.json`, and `loyalty-payload.json`. A `--payloadFile` is deeply merged into the selected template. Prototype-mutating keys are rejected.
 
-1.  Copy one of the default payload files (e.g., `generic-payload.json`) to a new file (e.g., `my-pass.json`).
-2.  Modify `my-pass.json` with your desired pass data.
-3.  Run the script with the `--payloadFile` option:
-
-```bash
-node scripts/generate-jwt.js --payloadFile my-pass.json
-```
-
-## Default Payloads
-
-This directory contains three default payload files:
-
-- `generic-payload.json`
-- `event-payload.json`
-- `loyalty-payload.json`
-
-These files are used as the default templates for generating passes. You can use them as a starting point for creating your own custom passes.
+Generated sample JWTs are ignored by Git and must not be committed.

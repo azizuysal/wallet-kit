@@ -131,3 +131,14 @@ Thumbs.db
 
 # AI
 .claude
+
+# Android testing
+wallet-kit-private
+
+# Local credentials
+.env*
+*.pem
+*.key
+credentials.*
+service-account*.json
+service_account*.json

@@ -2,14 +2,12 @@
 
 ## Reporting Security Issues
 
-If you discover a security vulnerability in this library, please report it by creating a new issue on GitHub:
+If you discover a security vulnerability in this library, do not open a public issue. Report it privately through either channel:
 
-1. Go to [GitHub Issues](https://github.com/azizuysal/wallet-kit/issues)
-2. Click "New Issue"
-3. Use the title prefix: `[SECURITY]`
-4. Describe the issue and steps to reproduce
+- [GitHub private vulnerability reporting](https://github.com/azizuysal/wallet-kit/security/advisories/new)
+- Email `security@azizuysal.com`
 
-We'll review and address security issues as quickly as possible.
+Include the affected version, impact, reproduction steps, and any suggested remediation. Do not include production credentials or personal data.
 
 ## Security Best Practices
 

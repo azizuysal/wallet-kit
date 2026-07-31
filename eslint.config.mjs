@@ -4,7 +4,15 @@ import prettierRecommended from 'eslint-plugin-prettier/recommended';
 
 export default [
   {
-    ignores: ['node_modules/**', 'lib/**', 'coverage/**', 'docs/**'],
+    ignores: [
+      'node_modules/**',
+      'lib/**',
+      'coverage/**',
+      'docs/**',
+      '**/build/**',
+      '**/Pods/**',
+      'wallet-kit-private/**',
+    ],
   },
   ...reactNativeFlatConfig,
   prettierRecommended,

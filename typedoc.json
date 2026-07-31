@@ -10,13 +10,14 @@
   "excludeProtected": true,
   "excludeInternal": true,
   "hideGenerator": true,
+  "highlightLanguages": ["typescript", "javascript", "shell", "xml", "text"],
   "sort": ["source-order"],
   "categorizeByGroup": true,
   "navigationLinks": {
     "GitHub": "https://github.com/azizuysal/wallet-kit",
     "NPM": "https://www.npmjs.com/package/@azizuysal/wallet-kit"
   },
-  "treatWarningsAsErrors": false,
+  "treatWarningsAsErrors": true,
   "validation": {
     "notExported": false,
     "invalidLink": true,

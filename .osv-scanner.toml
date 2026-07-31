@@ -19,24 +19,12 @@ id = "GHSA-968p-4wvh-cqc8"
 reason = "@babel/helpers and @babel/runtime are transitive deps used only during build time"
 
 [[IgnoredVulns]]
-id = "GHSA-x4c5-c7rf-jjgv"
-reason = "@octokit/endpoint is a transitive dep of release-it, only used during release process"
-
-[[IgnoredVulns]]
-id = "GHSA-h5c3-5r3r-rr8q"
-reason = "@octokit/plugin-paginate-rest is a transitive dep of release-it, only used during release process"
-
-[[IgnoredVulns]]
-id = "GHSA-rmvr-2pp2-xj38"
-reason = "@octokit/request is a transitive dep of release-it, only used during release process"
-
-[[IgnoredVulns]]
-id = "GHSA-xx4v-prfh-6cgc"
-reason = "@octokit/request-error is a transitive dep of release-it, only used during release process"
-
-[[IgnoredVulns]]
 id = "GHSA-v6h2-p8h4-qcjw"
 reason = "brace-expansion is a transitive dep used only during build time"
+
+[[IgnoredVulns]]
+id = "GHSA-mh99-v99m-4gvg"
+reason = "brace-expansion 1.x and 2.x have no fixed release; both are transitive build/test dependencies and are absent from the published runtime graph"
 
 [[IgnoredVulns]]
 id = "GHSA-m5qc-5hw7-8vg7"

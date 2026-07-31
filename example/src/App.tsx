@@ -9,7 +9,6 @@ import WalletKit, {
 import {
   Alert,
   Platform,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -17,6 +16,7 @@ import {
   View,
 } from 'react-native';
 import RNFS from 'react-native-fs';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 const PASS_FILES = {
   ios: {
@@ -25,12 +25,31 @@ const PASS_FILES = {
   },
   android: {
     single: 'demo.jwt',
-    multiple: ['demo.jwt', 'demo.jwt', 'demo.jwt'],
+    multiple: ['demo.jwt'],
   },
+};
+
+const SMOKE_RESULT_PATH = `${RNFS.DocumentDirectoryPath}/wallet-kit-smoke.txt`;
+
+const writeSmokeResult = async (result: string): Promise<void> => {
+  try {
+    await RNFS.writeFile(SMOKE_RESULT_PATH, result, 'utf8');
+  } catch (error) {
+    console.error('WalletKit smoke: failed to write result', error);
+  }
+};
+
+const showError = (context: string, error: unknown) => {
+  const message = error instanceof Error ? error.message : 'Unknown error';
+  console.error(`${context}:`, error);
+  Alert.alert('Error', `${context}: ${message}`, [{ text: 'OK' }], {
+    cancelable: true,
+  });
 };
 
 const App = () => {
   const [canAddPasses, setCanAddPasses] = React.useState(false);
+  const [invalidInputRejected, setInvalidInputRejected] = React.useState(false);
   const [platform] = React.useState(Platform.OS);
   const emitter = React.useMemo(() => createWalletEventEmitter(), []);
 
@@ -38,13 +57,7 @@ const App = () => {
     const listener = emitter.addListener(
       'AddPassCompleted',
       (success: boolean) => {
-        console.log('AddPassCompleted with success: ', success);
-        const message = success
-          ? 'Wallet operation completed successfully'
-          : 'Operation cancelled';
-        Alert.alert(success ? 'Success' : 'Info', message, [{ text: 'OK' }], {
-          cancelable: true,
-        });
+        console.log('Deprecated AddPassCompleted event:', success);
       }
     );
     return () => listener.remove();
@@ -56,10 +69,38 @@ const App = () => {
         const response = await WalletKit.canAddPasses();
         setCanAddPasses(response);
       } catch (error) {
-        console.log('Error checking pass status:', error);
+        console.error('Error checking pass status:', error);
       }
     };
     checkPassStatus();
+  }, []);
+
+  React.useEffect(() => {
+    const checkInvalidInput = async () => {
+      await writeSmokeResult('pending');
+      try {
+        await WalletKit.addPass('');
+        console.error('WalletKit smoke: invalid input unexpectedly resolved');
+        await writeSmokeResult('invalid input unexpectedly resolved');
+      } catch (error) {
+        const code =
+          typeof error === 'object' && error !== null && 'code' in error
+            ? error.code
+            : undefined;
+        if (code === 'INVALID_PASS') {
+          console.log('WalletKit smoke: invalid input rejected');
+          await writeSmokeResult('invalid input rejected');
+          setInvalidInputRejected(true);
+        } else {
+          console.error(
+            'WalletKit smoke: unexpected invalid input error',
+            error
+          );
+          await writeSmokeResult('unexpected invalid input error');
+        }
+      }
+    };
+    checkInvalidInput();
   }, []);
 
   const loadPassData = async (filename: string): Promise<string> => {
@@ -89,13 +130,15 @@ const App = () => {
           : PASS_FILES.android.single;
       const passData = await loadPassData(passFile);
       console.log('Pass type detected:', detectPassType(passData));
-      await WalletKit.addPass(passData);
-    } catch (error: any) {
-      console.error('Error adding pass:', error.code || error.message);
-      const errorMessage = `Failed to add pass: ${error.message || error.code || 'Unknown error'}`;
-      Alert.alert('Error', errorMessage, [{ text: 'OK' }], {
-        cancelable: true,
-      });
+      const added = await WalletKit.addPass(passData);
+      Alert.alert(
+        added ? 'Added' : 'Not added',
+        added
+          ? 'The pass was added.'
+          : 'The operation was cancelled or the pass already exists.'
+      );
+    } catch (error: unknown) {
+      showError('Failed to add pass', error);
     }
   };
 
@@ -110,73 +153,83 @@ const App = () => {
         passFiles.map((filename) => loadPassData(filename))
       );
 
-      await WalletKit.addPasses(passes);
-    } catch (error: any) {
-      console.error('Error adding passes:', error.code || error.message);
-      const errorMessage = `Failed to add passes: ${error.message || error.code || 'Unknown error'}`;
-      Alert.alert('Error', errorMessage, [{ text: 'OK' }], {
-        cancelable: true,
-      });
+      const added = await WalletKit.addPasses(passes);
+      Alert.alert(
+        added ? 'Added' : 'Not added',
+        added
+          ? 'Every pass was added.'
+          : 'The operation was cancelled or a pass already exists.'
+      );
+    } catch (error: unknown) {
+      showError('Failed to add passes', error);
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentInsetAdjustmentBehavior="automatic">
-        <View style={styles.content}>
-          <Text style={styles.title}>Wallet Kit Example</Text>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.container}>
+        <ScrollView contentInsetAdjustmentBehavior="automatic">
+          <View style={styles.content}>
+            <Text style={styles.title}>Wallet Kit Example</Text>
 
-          <View style={styles.infoBox}>
-            <Text style={styles.infoText}>
-              Platform: {platform.toUpperCase()}
-            </Text>
-            <Text style={styles.infoText}>
-              Can Add Passes: {canAddPasses ? '✅ YES' : '❌ NO'}
-            </Text>
-          </View>
+            <View style={styles.infoBox}>
+              <Text style={styles.infoText}>
+                Platform: {platform.toUpperCase()}
+              </Text>
+              <Text style={styles.infoText}>
+                Can Add Passes: {canAddPasses ? 'YES' : 'NO'}
+              </Text>
+              <Text style={styles.infoText}>
+                Invalid Input Rejected: {invalidInputRejected ? 'YES' : 'NO'}
+              </Text>
+            </View>
 
-          <Text style={styles.sectionTitle}>Native Buttons</Text>
-          <View style={styles.buttonContainer}>
-            <Text style={styles.buttonLabel}>Primary Style:</Text>
-            <WalletButton
-              addPassButtonStyle={WalletButtonStyle.primary}
-              style={styles.walletButton}
+            <Text style={styles.sectionTitle}>Native Buttons</Text>
+            <View style={styles.buttonContainer}>
+              <Text style={styles.buttonLabel}>Primary Style:</Text>
+              <WalletButton
+                addPassButtonStyle={WalletButtonStyle.primary}
+                style={styles.walletButton}
+                onPress={addSinglePass}
+              />
+            </View>
+
+            <View style={styles.buttonContainer}>
+              <Text style={styles.buttonLabel}>Secondary Style:</Text>
+              <WalletButton
+                addPassButtonStyle={WalletButtonStyle.secondary}
+                style={styles.walletButton}
+                onPress={addSinglePass}
+              />
+            </View>
+
+            <View style={styles.buttonContainer}>
+              <Text style={styles.buttonLabel}>Outline Style:</Text>
+              <WalletButton
+                addPassButtonStyle={WalletButtonStyle.outline}
+                style={styles.walletButton}
+                onPress={addSinglePass}
+              />
+            </View>
+
+            <Text style={styles.sectionTitle}>Actions</Text>
+            <TouchableOpacity
+              style={styles.actionButton}
               onPress={addSinglePass}
-            />
+            >
+              <Text style={styles.actionButtonText}>Add Single Pass</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={addMultiplePasses}
+            >
+              <Text style={styles.actionButtonText}>Add Multiple Passes</Text>
+            </TouchableOpacity>
           </View>
-
-          <View style={styles.buttonContainer}>
-            <Text style={styles.buttonLabel}>Secondary Style:</Text>
-            <WalletButton
-              addPassButtonStyle={WalletButtonStyle.secondary}
-              style={styles.walletButton}
-              onPress={addSinglePass}
-            />
-          </View>
-
-          <View style={styles.buttonContainer}>
-            <Text style={styles.buttonLabel}>Outline Style:</Text>
-            <WalletButton
-              addPassButtonStyle={WalletButtonStyle.outline}
-              style={styles.walletButton}
-              onPress={addSinglePass}
-            />
-          </View>
-
-          <Text style={styles.sectionTitle}>Actions</Text>
-          <TouchableOpacity style={styles.actionButton} onPress={addSinglePass}>
-            <Text style={styles.actionButtonText}>Add Single Pass</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={addMultiplePasses}
-          >
-            <Text style={styles.actionButtonText}>Add Multiple Passes</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 };
 

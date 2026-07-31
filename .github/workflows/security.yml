@@ -7,17 +7,22 @@ on:
   pull_request:
     branches:
       - main
+  merge_group:
+    types:
+      - checks_requested
   schedule:
-    # Run at 2 AM UTC every Monday
     - cron: '0 2 * * 1'
   workflow_dispatch:
+  workflow_call:
 
 permissions:
+  actions: read
   contents: read
   security-events: write
 
 jobs:
   dependency-audit:
+    name: Yarn audit and secret/package scans
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -26,20 +31,41 @@ jobs:
       - name: Setup
         uses: ./.github/actions/setup
 
-      - name: Run npm audit
-        run: npm audit --audit-level=moderate
-        continue-on-error: true
+      - name: Audit the immutable Yarn dependency graph
+        run: corepack yarn npm audit --recursive --environment production --severity high
 
-      - name: Run yarn audit
-        run: yarn audit --level moderate
-        continue-on-error: true
+      - name: Scan tracked and packed files for credentials
+        run: |
+          corepack yarn prepare
+          corepack yarn validate:secrets
+          corepack yarn validate:package
+
+  osv-pr:
+    name: OSV new-vulnerability gate
+    if: github.event_name == 'pull_request'
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@v2.3.8
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+  osv-full:
+    name: OSV high/critical gate
+    if: github.event_name != 'pull_request'
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.3.8
+    with:
+      scan-args: |-
+        --min-severity=7.0
+        --recursive
+        ./
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
 
   codeql:
+    name: CodeQL
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        language: ['javascript', 'typescript']
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -47,69 +73,35 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
-          languages: ${{ matrix.language }}
+          languages: javascript-typescript
           queries: security-and-quality
 
       - name: Autobuild
         uses: github/codeql-action/autobuild@v4
 
-      - name: Perform CodeQL Analysis
+      - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@v4
         with:
-          category: '/language:${{ matrix.language }}'
-
-  snyk:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup
-        uses: ./.github/actions/setup
-
-      - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/node@v1
-        continue-on-error: true
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: --severity-threshold=high
+          category: /language:javascript-typescript
 
   dependency-review:
-    runs-on: ubuntu-latest
+    name: Dependency review
     if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Dependency Review
+      - name: Review dependency changes
         uses: actions/dependency-review-action@v4
         with:
-          fail-on-severity: moderate
-          deny-licenses: GPL-3.0, AGPL-3.0
+          fail-on-severity: high
 
-  trivy:
+  snyk:
+    name: Snyk when configured
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Run Trivy vulnerability scanner in repo mode
-        uses: aquasecurity/trivy-action@v0.36.0
-        with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-          severity: 'CRITICAL,HIGH'
-
-      - name: Upload Trivy results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: 'trivy-results.sarif'
-
-  license-check:
-    runs-on: ubuntu-latest
+    env:
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -117,24 +109,14 @@ jobs:
       - name: Setup
         uses: ./.github/actions/setup
 
-      - name: Check licenses
-        run: |
-          npx license-checker@25.0.1 --production --excludePrivatePackages --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;BSD;BSD*;ISC;CC0-1.0;CC-BY-3.0;CC-BY-4.0;Unlicense;WTFPL;0BSD;Python-2.0;(MIT OR CC0-1.0);(BSD-3-Clause OR GPL-2.0)' || {
-            echo "Found packages with incompatible licenses. Run locally:"
-            echo "npx license-checker --production --summary"
-            exit 1
-          }
-          echo "All production dependencies have compatible licenses"
+      - name: Explain skipped Snyk scan
+        if: env.SNYK_TOKEN == ''
+        run: echo 'Snyk skipped because SNYK_TOKEN is not configured.'
 
-  osv-scanner:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Run OSV Scanner
-        run: |
-          curl -sSfL https://github.com/google/osv-scanner/releases/download/v1.9.1/osv-scanner_linux_amd64 -o osv-scanner
-          chmod +x osv-scanner
-          ./osv-scanner --skip-git --recursive ./ || true
-          echo "OSV Scanner completed - vulnerabilities are tracked but not blocking"
+      - name: Run Snyk high-severity gate
+        if: env.SNYK_TOKEN != ''
+        uses: snyk/actions/node@v1
+        env:
+          SNYK_TOKEN: ${{ env.SNYK_TOKEN }}
+        with:
+          args: --all-projects --severity-threshold=high

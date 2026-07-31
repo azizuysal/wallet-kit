@@ -1,50 +1,49 @@
-buildscript {
-  // Buildscript is evaluated before everything else so we can't use getExtOrDefault
-  def kotlin_version = rootProject.ext.has("kotlinVersion") ? rootProject.ext.get("kotlinVersion") : project.properties["WalletKit_kotlinVersion"]
-
-  repositories {
-    google()
-    mavenCentral()
-  }
-
-  dependencies {
-    classpath "com.android.tools.build:gradle:8.12.0"
-    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-  }
-}
-
 def reactNativeArchitectures() {
   def value = rootProject.getProperties().get("reactNativeArchitectures")
   return value ? value.split(",") : ["armeabi-v7a", "x86", "x86_64", "arm64-v8a"]
 }
 
-def isNewArchitectureEnabled() {
-  return rootProject.hasProperty("newArchEnabled") && rootProject.getProperty("newArchEnabled") == "true"
+def findReactNativeVersion() {
+  def directory = rootProject.projectDir
+  while (directory != null) {
+    def packageJson = new File(directory, "node_modules/react-native/package.json")
+    if (packageJson.exists()) {
+      return new groovy.json.JsonSlurper().parseText(packageJson.text).version as String
+    }
+    directory = directory.parentFile
+  }
+  return null
 }
 
 apply plugin: "com.android.library"
-apply plugin: "kotlin-android"
+apply plugin: "org.jetbrains.kotlin.android"
 
-if (isNewArchitectureEnabled()) {
+def reactNativeVersion = findReactNativeVersion()
+def reactNativeMinor = reactNativeVersion == null ? -1 : reactNativeVersion.tokenize('.')[1].toInteger()
+def hostRequestedNewArchitecture =
+  rootProject.hasProperty("newArchEnabled") && rootProject.getProperty("newArchEnabled") == "true"
+def useNewArchitecture = hostRequestedNewArchitecture || reactNativeMinor >= 82
+
+if (useNewArchitecture) {
   apply plugin: "com.facebook.react"
 }
 
-def getExtOrDefault(name) {
-  return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties["WalletKit_" + name]
-}
-
-def getExtOrIntegerDefault(name) {
-  return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties["WalletKit_" + name]).toInteger()
+def getExtOrIntegerDefault(name, fallback) {
+  if (rootProject.ext.has(name)) {
+    return rootProject.ext.get(name)
+  }
+  def property = project.properties["WalletKit_" + name]
+  return property == null ? fallback : property.toInteger()
 }
 
 android {
   namespace "com.azizuysal.walletkit"
 
-  compileSdkVersion getExtOrIntegerDefault("compileSdkVersion")
+  compileSdkVersion getExtOrIntegerDefault("compileSdkVersion", 36)
 
   defaultConfig {
-    minSdkVersion getExtOrIntegerDefault("minSdkVersion")
-    targetSdkVersion getExtOrIntegerDefault("targetSdkVersion")
+    minSdkVersion getExtOrIntegerDefault("minSdkVersion", 24)
+    targetSdkVersion getExtOrIntegerDefault("targetSdkVersion", 36)
   }
 
   buildTypes {
@@ -53,8 +52,10 @@ android {
     }
   }
 
-  lint {
-    disable "GradleCompatible"
+  sourceSets {
+    main.java.srcDirs += useNewArchitecture
+      ? "src/newarch/java"
+      : "src/legacy/java"
   }
 
   compileOptions {
@@ -72,10 +73,8 @@ repositories {
   google()
 }
 
-def kotlin_version = getExtOrDefault("kotlinVersion")
-
 dependencies {
   implementation "com.facebook.react:react-android"
-  implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
   implementation "com.google.android.gms:play-services-pay:16.5.0"
+  testImplementation "junit:junit:4.13.2"
 }
