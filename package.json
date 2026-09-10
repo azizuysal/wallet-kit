@@ -1,6 +1,6 @@
 {
   "name": "@azizuysal/wallet-kit",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Add Apple Wallet and Google Wallet passes in React Native",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
