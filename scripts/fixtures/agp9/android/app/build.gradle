@@ -1,0 +1,28 @@
+apply plugin: 'com.android.application'
+if (project.extensions.findByName('kotlin') == null) {
+  apply plugin: 'org.jetbrains.kotlin.android'
+}
+apply plugin: 'com.facebook.react'
+
+react {
+  autolinkLibrariesWithApp()
+}
+
+android {
+  namespace 'com.azizuysal.walletkit.agp9'
+  compileSdk 37
+  ndkVersion '27.1.12297006'
+
+  defaultConfig {
+    applicationId 'com.azizuysal.walletkit.agp9'
+    minSdk 24
+    targetSdk 37
+    versionCode 1
+    versionName '1.0'
+  }
+}
+
+dependencies {
+  implementation('com.facebook.react:react-android')
+  implementation('com.facebook.react:hermes-android')
+}

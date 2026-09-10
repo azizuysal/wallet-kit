@@ -158,6 +158,69 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  android-agp9:
+    name: Android AGP 9 newDsl=${{ matrix.new-dsl }} builtInKotlin=${{ matrix.built-in-kotlin }}
+    needs: package
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - new-dsl: 'true'
+            built-in-kotlin: 'true'
+          - new-dsl: 'false'
+            built-in-kotlin: 'false'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Download package tarball
+        uses: actions/download-artifact@v5
+        with:
+          name: wallet-kit-package
+          path: ${{ runner.temp }}/wallet-kit-package
+
+      - name: Prepare packed-package consumer
+        env:
+          APP_DIR: ${{ runner.temp }}/wallet-kit-agp9-${{ matrix.new-dsl }}
+          ARCHITECTURE: new
+          REACT_NATIVE_VERSION: '0.87.1'
+          REACT_VERSION: '19.2.5'
+        run: |
+          mkdir -p "$APP_DIR"
+          rsync -a --exclude /android --exclude /ios --exclude /node_modules --exclude /dist example/ "$APP_DIR/"
+          TARBALL=$(find "$RUNNER_TEMP/wallet-kit-package" -maxdepth 1 -name '*.tgz' -print -quit)
+          node scripts/prepare-compatibility-app.mjs --app "$APP_DIR" --tarball "$TARBALL" --react-native "$REACT_NATIVE_VERSION" --react "$REACT_VERSION" --architecture "$ARCHITECTURE" --native-tests false --agp9 true
+          cd "$APP_DIR"
+          corepack enable
+          corepack prepare yarn@4.18.0 --activate
+          YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install
+          yarn install --immutable
+          yarn build:android
+
+      - name: Run Android native tests and Debug build
+        working-directory: ${{ runner.temp }}/wallet-kit-agp9-${{ matrix.new-dsl }}/android
+        run: |
+          ./gradlew verifyAgp9 :azizuysal_wallet-kit:testDebugUnitTest :app:assembleDebug \
+            -PreactNativeArchitectures=x86_64 \
+            -Pandroid.newDsl=${{ matrix.new-dsl }} \
+            -Pandroid.builtInKotlin=${{ matrix.built-in-kotlin }} \
+            --stacktrace
+
   ios:
     name: iOS RN ${{ matrix.rn }} ${{ matrix.architecture }}
     needs: [matrix, package]

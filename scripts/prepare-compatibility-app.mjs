@@ -35,6 +35,7 @@ const reactNativeVersion = options.get('react-native');
 const reactVersion = options.get('react');
 const architecture = options.get('architecture');
 const includeNativeTests = options.get('native-tests') === 'true';
+const useAgp9Fixture = options.get('agp9') === 'true';
 const gradleDistributions = new Map([
   ['0.76.9', '8.11.1-all'],
   ['0.77.3', '8.11.1-all'],
@@ -68,6 +69,13 @@ packageJson.devDependencies = {
   'react-native-test-app': '5.4.6',
 };
 delete packageJson.devDependencies['react-native-builder-bob'];
+if (useAgp9Fixture) {
+  delete packageJson.dependencies['react-native-safe-area-context'];
+  delete packageJson.devDependencies['react-native-fs'];
+  delete packageJson.devDependencies['react-native-test-app'];
+  packageJson.devDependencies['@react-native-community/cli-platform-android'] =
+    '20.2.0';
+}
 fs.writeFileSync(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`);
 
 fs.writeFileSync(
@@ -166,6 +174,27 @@ use_test_app! :hermes_enabled => true,
   end
 end
 `
+  );
+}
+
+if (useAgp9Fixture) {
+  fs.cpSync(new URL('./fixtures/agp9/', import.meta.url), appDirectory, {
+    recursive: true,
+  });
+  fs.copyFileSync(
+    new URL('../android/gradlew', import.meta.url),
+    path.join(appDirectory, 'android', 'gradlew')
+  );
+  fs.chmodSync(path.join(appDirectory, 'android', 'gradlew'), 0o755);
+  fs.copyFileSync(
+    new URL('../android/gradle/wrapper/gradle-wrapper.jar', import.meta.url),
+    path.join(
+      appDirectory,
+      'android',
+      'gradle',
+      'wrapper',
+      'gradle-wrapper.jar'
+    )
   );
 }
 

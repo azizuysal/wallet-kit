@@ -103,4 +103,68 @@ describe('compatibility app preparation', () => {
       fs.readFileSync(path.join(iosDirectory, 'Podfile'), 'utf8')
     ).toContain(":testspecs => ['Tests']");
   });
+
+  it('prepares an autolinked AGP 9 consumer without unrelated native packages', () => {
+    fs.writeFileSync(
+      path.join(appDirectory, 'package.json'),
+      JSON.stringify({
+        dependencies: { 'react-native-safe-area-context': '5.8.0' },
+        devDependencies: { 'react-native-fs': '^2.20.0' },
+      })
+    );
+
+    const result = runPrepare(appDirectory, tarball, [
+      '--react-native',
+      '0.87.1',
+      '--react',
+      '19.2.5',
+      '--architecture',
+      'new',
+      '--agp9',
+      'true',
+    ]);
+
+    expect(result.status).toBe(0);
+    const packageJson = JSON.parse(
+      fs.readFileSync(path.join(appDirectory, 'package.json'), 'utf8')
+    );
+    expect(packageJson.dependencies['@azizuysal/wallet-kit']).toBe(
+      `file:${tarball}`
+    );
+    expect(packageJson.dependencies['react-native']).toBe('0.87.1');
+    expect(
+      packageJson.dependencies['react-native-safe-area-context']
+    ).toBeUndefined();
+    expect(packageJson.devDependencies['react-native-fs']).toBeUndefined();
+    expect(
+      packageJson.devDependencies['react-native-test-app']
+    ).toBeUndefined();
+    expect(require(path.join(appDirectory, 'react-native.config.js'))).toEqual(
+      {}
+    );
+    expect(
+      fs.readFileSync(
+        path.join(appDirectory, 'android', 'settings.gradle'),
+        'utf8'
+      )
+    ).toContain('autolinkLibrariesFromCommand');
+    expect(
+      fs.readFileSync(
+        path.join(
+          appDirectory,
+          'android',
+          'gradle',
+          'wrapper',
+          'gradle-wrapper.properties'
+        ),
+        'utf8'
+      )
+    ).toContain('gradle-9.6.1-bin.zip');
+    expect(() =>
+      fs.accessSync(
+        path.join(appDirectory, 'android', 'gradlew'),
+        fs.constants.X_OK
+      )
+    ).not.toThrow();
+  });
 });

@@ -1,0 +1,32 @@
+buildscript {
+  repositories {
+    google()
+    mavenCentral()
+  }
+  configurations.classpath {
+    resolutionStrategy.force('com.android.tools.build:gradle:9.2.1')
+  }
+  dependencies {
+    classpath('com.android.tools.build:gradle:9.2.1')
+    classpath('org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.10')
+    classpath('com.facebook.react:react-native-gradle-plugin')
+  }
+}
+
+apply plugin: 'com.facebook.react.rootproject'
+
+ext.compileSdkVersion = 37
+ext.targetSdkVersion = 37
+
+tasks.register('verifyAgp9') {
+  doLast {
+    assert com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION == '9.2.1'
+    assert gradle.gradleVersion == '9.6.1'
+    def builtInKotlin = providers.gradleProperty('android.builtInKotlin').get()
+    assert builtInKotlin in ['true', 'false']
+    assert providers.gradleProperty('android.newDsl').get() == builtInKotlin
+    def walletKit = project(':azizuysal_wallet-kit')
+    assert walletKit.plugins.hasPlugin('org.jetbrains.kotlin.android') == (builtInKotlin == 'false')
+    println("Verified AGP 9.2.1 / Gradle 9.6.1 / built-in Kotlin ${builtInKotlin}")
+  }
+}
