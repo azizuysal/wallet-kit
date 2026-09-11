@@ -37,6 +37,7 @@ internal class GoogleWalletPayClient(private val client: PayClient) : WalletPayC
 internal class WalletKitCore(
   private val currentActivity: () -> WalletActivity?,
   private val payClient: WalletPayClient,
+  private val isGooglePlayServicesAvailable: () -> Boolean,
   private val emitCompletion: (Boolean) -> Unit,
 ) {
   private val listenerCount = AtomicInteger(0)
@@ -44,6 +45,11 @@ internal class WalletKitCore(
   private var walletActivityLaunched = false
 
   fun canAddPasses(promise: WalletPromise) {
+    if (!isGooglePlayServicesAvailable()) {
+      promise.resolve(false)
+      return
+    }
+
     payClient.checkAvailability(
       onSuccess = { status -> promise.resolve(status == PayApiAvailabilityStatus.AVAILABLE) },
       onFailure = { error ->
@@ -97,6 +103,11 @@ internal class WalletKitCore(
     val activity = currentActivity()
     if (activity == null) {
       rejectPending(ERR_WALLET_ACTIVITY_NULL, "Activity is null")
+      return
+    }
+
+    if (!isGooglePlayServicesAvailable()) {
+      rejectPending(ERR_WALLET_NOT_AVAILABLE, "Google Play services is not available on this device")
       return
     }
 
