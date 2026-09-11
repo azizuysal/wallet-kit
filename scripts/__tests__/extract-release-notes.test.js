@@ -4,19 +4,28 @@ const path = require('path');
 const { extractReleaseNotes } = require('../extract-release-notes');
 
 describe('GitHub release notes', () => {
-  it('extracts the current package version from the curated changelog', () => {
-    const packageJson = require('../../package.json');
-    const changelog = fs.readFileSync(
-      path.join(__dirname, '..', '..', 'CHANGELOG.md'),
-      'utf8'
-    );
+  const changelog = fs.readFileSync(
+    path.join(__dirname, '..', '..', 'CHANGELOG.md'),
+    'utf8'
+  );
 
-    const notes = extractReleaseNotes(changelog, packageJson.version);
+  it('extracts the 2.0.0 notes without including neighboring releases', () => {
+    const notes = extractReleaseNotes(changelog, '2.0.0');
 
     expect(notes).toContain('### Breaking Changes');
     expect(notes).toContain('### Compatibility');
-    expect(notes).toContain(`compare/v1.1.0...v${packageJson.version}`);
+    expect(notes).toContain('compare/v1.1.0...v2.0.0');
     expect(notes).not.toContain('## [1.1.0]');
+  });
+
+  it('extracts curated notes and a comparison link for the package being published', () => {
+    const packageJson = require('../../package.json');
+    const notes = extractReleaseNotes(changelog, packageJson.version);
+
+    expect(notes).toMatch(/^### \S/m);
+    expect(notes).toContain('**Full Changelog**: https://github.com/');
+    expect(notes).toContain(`...v${packageJson.version}\n`);
+    expect(notes).not.toMatch(/^## \[/m);
   });
 
   it('rejects a missing version section', () => {

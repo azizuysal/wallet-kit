@@ -13,6 +13,61 @@ class WalletKitCoreTest {
   private val activity = object : WalletActivity {}
 
   @Test
+  fun `unavailable Play services resolves false without querying the Wallet SDK`() {
+    val client = FakePayClient()
+    val promise = FakePromise()
+    val core = newCore(client, isGooglePlayServicesAvailable = { false })
+
+    core.canAddPasses(promise)
+
+    assertEquals(false, promise.resolved)
+    assertEquals(1, promise.settlementCount)
+    assertTrue(client.availabilityCallbacks.isEmpty())
+  }
+
+  @Test
+  fun `unavailable Play services rejects add calls without leaving pending work`() {
+    val client = FakePayClient()
+    val single = FakePromise()
+    val multiple = FakePromise()
+    val core = newCore(client, isGooglePlayServicesAvailable = { false })
+
+    core.addPass(VALID_JWT, single)
+    core.addPasses(listOf(VALID_JWT), multiple)
+
+    assertEquals(WalletKitCore.ERR_WALLET_NOT_AVAILABLE, single.rejectedCode)
+    assertEquals(WalletKitCore.ERR_WALLET_NOT_AVAILABLE, multiple.rejectedCode)
+    assertEquals(1, single.settlementCount)
+    assertEquals(1, multiple.settlementCount)
+    assertTrue(client.availabilityCallbacks.isEmpty())
+    assertNull(client.savedJwt)
+  }
+
+  @Test
+  fun `add calls recover when Play services becomes available`() {
+    val client = FakePayClient()
+    var servicesAvailable = false
+    val core = newCore(client, isGooglePlayServicesAvailable = { servicesAvailable })
+    val unavailable = FakePromise()
+    core.addPass(VALID_JWT, unavailable)
+
+    servicesAvailable = true
+    val available = FakePromise()
+    core.canAddPasses(available)
+    client.succeedAvailability(PayApiAvailabilityStatus.AVAILABLE)
+    val added = FakePromise()
+    core.addPass(VALID_JWT, added)
+    client.succeedAvailability(PayApiAvailabilityStatus.AVAILABLE)
+    core.handleActivityResult(WalletKitCore.ADD_TO_GOOGLE_WALLET_REQUEST_CODE, Activity.RESULT_OK)
+
+    assertEquals(WalletKitCore.ERR_WALLET_NOT_AVAILABLE, unavailable.rejectedCode)
+    assertEquals(true, available.resolved)
+    assertEquals(VALID_JWT, client.savedJwt)
+    assertEquals(true, added.resolved)
+    assertEquals(1, added.settlementCount)
+  }
+
+  @Test
   fun `availability resolves true only for available status`() {
     val client = FakePayClient()
     val promise = FakePromise()
@@ -280,8 +335,9 @@ class WalletKitCoreTest {
   private fun newCore(
     client: FakePayClient,
     currentActivity: () -> WalletActivity? = { activity },
+    isGooglePlayServicesAvailable: () -> Boolean = { true },
     emitCompletion: (Boolean) -> Unit = {},
-  ) = WalletKitCore(currentActivity, client, emitCompletion)
+  ) = WalletKitCore(currentActivity, client, isGooglePlayServicesAvailable, emitCompletion)
 
   private class FakePromise : WalletPromise {
     var resolved: Boolean? = null

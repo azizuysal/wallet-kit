@@ -4,6 +4,21 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-09-11
+
+### Bug Fixes
+
+- **Android**: fixed AGP 9 builds with built-in Kotlin by avoiding duplicate Kotlin plugin registration, registering Kotlin source directories correctly, and configuring the JVM target through `compilerOptions`.
+- **Android**: preserved external Kotlin plugin support when built-in Kotlin is disabled.
+- **Android**: check Google Play services before querying the Wallet SDK, so unavailable services resolve `canAddPasses` to `false` and reject add operations with `ERR_WALLET_NOT_AVAILABLE` instead of leaving them pending.
+
+### Tests
+
+- Added packed-consumer Android builds and native regression tests with AGP 9.2.1 and Gradle 9.6.1, covering both enabled and disabled built-in Kotlin and new DSL modes.
+- Added regression tests for unavailable Play services and recovery after services become available.
+
+Thanks to @gabrieldonadel for the contribution in #29.
+
 ## [2.0.0] - 2026-07-31
 
 ### Breaking Changes
@@ -150,7 +165,8 @@ All notable changes to this project are documented in this file.
 - Event handling system
 - Error handling with specific error codes
 
-[Unreleased]: https://github.com/azizuysal/wallet-kit/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/azizuysal/wallet-kit/compare/v2.0.1...HEAD
+[2.0.1]: https://github.com/azizuysal/wallet-kit/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/azizuysal/wallet-kit/compare/v1.1.0...v2.0.0
 [1.1.0]: https://github.com/azizuysal/wallet-kit/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/azizuysal/wallet-kit/compare/v0.2.1...v1.0.0

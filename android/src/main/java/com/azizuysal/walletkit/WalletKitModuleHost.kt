@@ -9,6 +9,8 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.modules.core.DeviceEventManagerModule
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.pay.Pay
 import com.google.android.gms.pay.PayClient
 
@@ -17,6 +19,10 @@ internal class WalletKitModuleHost(private val reactContext: ReactApplicationCon
   private val core = WalletKitCore(
     currentActivity = { reactContext.currentActivity?.let(::AndroidWalletActivity) },
     payClient = GoogleWalletPayClient(Pay.getClient(reactContext)),
+    isGooglePlayServicesAvailable = {
+      GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(reactContext) ==
+        ConnectionResult.SUCCESS
+    },
     emitCompletion = { success -> sendEvent(reactContext, ADD_PASS_COMPLETED, success) },
   )
 

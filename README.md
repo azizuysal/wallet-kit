@@ -20,7 +20,7 @@ Expo Go is not supported because Wallet Kit contains native code. Expo developme
 
 ## Compatibility
 
-Wallet Kit 2.x supports React Native `>=0.76` with no peer upper bound. The release-blocking range is React Native 0.76 through 0.86. Later React Native versions can be installed, but are unverified until their exact stable patch is promoted into the blocking matrix.
+Wallet Kit 2.x supports React Native `>=0.76` with no peer upper bound. The release-blocking range is React Native 0.76 through 0.86. Later React Native versions can be installed, but are outside the full Android/iOS compatibility matrix.
 
 | React Native | Exact blocking patch | React  | Architectures  |
 | ------------ | -------------------- | ------ | -------------- |
@@ -39,6 +39,8 @@ Wallet Kit 2.x supports React Native `>=0.76` with no peer upper bound. The rele
 Every release must pass the full packed-consumer matrix in [`compatibility.json`](compatibility.json). Pull requests run the oldest, architecture boundary, and newest cells. Scheduled and release workflows run every listed cell. React Native 0.82 and later are New-Architecture-only; Wallet Kit uses generated TurboModule and Fabric implementations there rather than the compatibility interop layer.
 
 Common platform floors are iOS 15.1, Android API 24, and Java 17. The Android library inherits the host React Native project's Android Gradle Plugin, Kotlin plugin, and SDK configuration, with API 24/36 defaults when the host does not provide values. These floors follow the [React Native 0.76 platform changes](https://reactnative.dev/blog/2024/10/23/release-0.76-new-architecture); the New-Architecture-only boundary follows [React Native 0.82](https://reactnative.dev/blog/2025/10/08/react-native-0.82).
+
+Wallet Kit 2.0.1 adds Android build support for AGP 9 with built-in Kotlin and with both `android.builtInKotlin=false` and `android.newDsl=false`. The dedicated Android regression fixture uses React Native 0.87.1, AGP 9.2.1, and Gradle 9.6.1. The full Android/iOS compatibility matrix remains the range listed above.
 
 React Native below 0.76 must remain on `@azizuysal/wallet-kit@^1`.
 
