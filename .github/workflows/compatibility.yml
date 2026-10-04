@@ -147,17 +147,6 @@ jobs:
             adb shell am start -W -n com.azizuysal.walletkit.example/com.microsoft.reacttestapp.MainActivity
             node "$GITHUB_WORKSPACE/scripts/android-smoke.mjs"
 
-      - name: Upload Android smoke evidence
-        if: matrix.rn == '0.86.2' && matrix.architecture == 'new' && success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-smoke-${{ matrix.rn }}-${{ matrix.architecture }}
-          path: |
-            ${{ runner.temp }}/wallet-kit-*.xml
-            ${{ runner.temp }}/wallet-kit-android.png
-          if-no-files-found: error
-          retention-days: 7
-
   android-agp9:
     name: Android AGP 9 newDsl=${{ matrix.new-dsl }} builtInKotlin=${{ matrix.built-in-kotlin }}
     needs: package
@@ -318,18 +307,6 @@ jobs:
           grep -qx 'invalid input rejected; sample pass readable' "$DATA_CONTAINER/Documents/wallet-kit-smoke.txt"
           xcrun simctl spawn "$DEVICE_ID" log show --last 2m --style compact --predicate "process == 'ReactTestApp'" > "$RUNNER_TEMP/wallet-kit-ios.log"
           if grep -E "doesn't seem to be linked|Unhandled JS Exception|Fatal error" "$RUNNER_TEMP/wallet-kit-ios.log"; then exit 1; fi
-          xcrun simctl io "$DEVICE_ID" screenshot "$RUNNER_TEMP/wallet-kit-ios.png"
-
-      - name: Upload iOS smoke evidence
-        if: matrix.rn == '0.86.2' && matrix.architecture == 'new' && success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-smoke-${{ matrix.rn }}-${{ matrix.architecture }}
-          path: |
-            ${{ runner.temp }}/wallet-kit-ios.log
-            ${{ runner.temp }}/wallet-kit-ios.png
-          if-no-files-found: error
-          retention-days: 7
 
   next:
     name: Non-blocking ${{ matrix.platform }} react-native@next

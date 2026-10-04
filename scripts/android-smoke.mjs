@@ -1,46 +1,28 @@
 import { execFileSync } from 'node:child_process';
-import fs from 'node:fs';
-import path from 'node:path';
-
-const runnerTemp = process.env.RUNNER_TEMP;
-if (!runnerTemp) {
-  throw new Error('RUNNER_TEMP is required');
-}
 
 const remoteUiPath = '/sdcard/wallet-kit.xml';
-const beforePath = path.join(runnerTemp, 'wallet-kit-before.xml');
-const afterPath = path.join(runnerTemp, 'wallet-kit-after.xml');
-const screenshotPath = path.join(runnerTemp, 'wallet-kit-android.png');
 
-const runAdb = (arguments_, options = {}) =>
+const runAdb = (arguments_) =>
   execFileSync('adb', arguments_, {
     encoding: 'utf8',
     maxBuffer: 10 * 1024 * 1024,
-    ...options,
   });
 
 const delay = (milliseconds) =>
   new Promise((resolve) => setTimeout(resolve, milliseconds));
 
-const dumpUi = (localPath) => {
+const dumpUi = () => {
   runAdb(['shell', 'uiautomator', 'dump', remoteUiPath]);
-  const xml = runAdb(['exec-out', 'cat', remoteUiPath]);
-  fs.writeFileSync(localPath, xml);
-  return xml;
+  return runAdb(['exec-out', 'cat', remoteUiPath]);
 };
 
-const waitForUi = async (
-  description,
-  localPath,
-  predicate,
-  timeout = 60_000
-) => {
+const waitForUi = async (description, predicate, timeout = 60_000) => {
   const deadline = Date.now() + timeout;
   let lastError;
 
   while (Date.now() < deadline) {
     try {
-      const xml = dumpUi(localPath);
+      const xml = dumpUi();
       if (predicate(xml)) {
         return xml;
       }
@@ -60,7 +42,6 @@ const waitForUi = async (
 
 const before = await waitForUi(
   'the rendered Wallet Kit example',
-  beforePath,
   (xml) =>
     xml.includes('text="Wallet Kit Example"') &&
     /text="Can Add Passes: (YES|NO)"/.test(xml) &&
@@ -85,14 +66,8 @@ runAdb(['shell', 'input', 'tap', String(tapX), String(tapY)]);
 
 await waitForUi(
   'the button press result',
-  afterPath,
   (xml) => xml.includes('text="Error"'),
   30_000
 );
-
-const screenshot = runAdb(['exec-out', 'screencap', '-p'], {
-  encoding: null,
-});
-fs.writeFileSync(screenshotPath, screenshot);
 
 console.log('Android packed-consumer smoke test passed');

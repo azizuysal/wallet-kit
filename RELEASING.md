@@ -2,42 +2,17 @@
 
 Wallet Kit publishes only from an annotated `v*` tag through `.github/workflows/release.yml`. The repository has no manual workflow that can bypass compatibility or security gates.
 
-## Required evidence before tagging
+## Required checks
 
-A maintainer must confirm all of the following for the exact release commit:
+Automated tests and CI are the release gates. No separate release-evidence folder, downloaded log archive, checksum manifest, or manual device sign-off is required.
 
-- Immutable Yarn install, lint, TypeScript, Jest coverage thresholds, Builder Bob build, TypeDoc, Codegen, package inspection, and secret scans pass.
-- The scheduled/release compatibility workflow passes every entry in `compatibility.json`: Android and iOS Debug for every cell, both architectures through React Native 0.81, New Architecture from 0.82, and Release builds for the oldest Legacy and latest New cells.
-- The packed tarball, not a workspace link, is what each compatibility app installs.
-- OSV Scanner, Yarn audit, CodeQL, and dependency review have no blocking findings. Snyk must pass when `SNYK_TOKEN` is configured; a missing token is reported as an explicit skip.
-- Current-stable Android and iOS simulator launch evidence shows the packed module linking and native button rendering. Android CI also presses the native button and verifies the JavaScript callback path.
-- Dedicated physical-device credentials outside the repository pass the manual checklist below.
-- README and changelog match the evidence and package contents.
+For the exact release commit:
 
-Do not tag a release while any required gate is pending or failed.
+- Required branch checks must pass before tagging: immutable Yarn install, lint, TypeScript, Jest coverage thresholds, Builder Bob build, TypeDoc, Codegen, package inspection, secret scans, and security checks.
+- The tag workflow must pass the full compatibility and security workflows before publishing. Compatibility checks install the packed tarball into consumer apps, run native tests, build Android and iOS across `compatibility.json`, and run the current-stable emulator and simulator smoke checks.
+- README and changelog must match the package contents and supported behavior.
 
-## Manual device checklist
-
-Use dedicated test issuer and Apple pass credentials. Never use founder, customer, or production credentials.
-
-### iPhone
-
-- Add a valid signed pass.
-- Cancel the sheet and verify the promise resolves `false`.
-- Submit an already-present pass and verify `false`.
-- Add multiple valid passes and verify the final aggregate outcome.
-
-Hiding Wallet with Screen Time is not an unavailable-wallet test. It hides the app without disabling PassKit, so `canAddPasses()` may still return `true`. Verify iOS unavailable-wallet and controller-creation failures through the injectable native tests.
-
-### Android with Google Play Services
-
-- Add a valid issuer JWT and verify `true`.
-- Cancel and verify `false`.
-- Test unavailable-wallet behavior.
-- Interrupt the host lifecycle while an operation is active and verify one rejection with no later duplicate settlement.
-- Check standard and condensed Google Wallet button rendering and press behavior.
-
-Record the app build, device/OS versions, credential identity, date, and result outside the repository. Never record key material or signed production payloads.
+Do not tag while required branch checks are pending or failed. Use CI job results directly to confirm the automated checks.
 
 ## Prepare the release commit
 

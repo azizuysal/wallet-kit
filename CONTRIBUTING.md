@@ -55,4 +55,4 @@ The compatibility workflow installs the packed tarball into isolated consumer ap
 
 ## Releases
 
-Contributors do not publish locally. Maintainers follow [RELEASING.md](RELEASING.md), including the full compatibility, security, package, simulator, and physical-device evidence gates.
+Contributors do not publish locally. Maintainers follow [RELEASING.md](RELEASING.md), using automated tests and CI compatibility, security, package, and smoke checks as the release gates.

@@ -185,7 +185,7 @@ Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md). Do 
 
 ## Contributing and releases
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development instructions and [RELEASING.md](RELEASING.md) for the release evidence gates.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development instructions and [RELEASING.md](RELEASING.md) for the automated release checks.
 
 ## License
 
