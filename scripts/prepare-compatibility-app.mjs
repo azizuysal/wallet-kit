@@ -66,7 +66,7 @@ packageJson.devDependencies = {
   '@react-native/babel-preset': reactNativeVersion,
   '@react-native/metro-config': reactNativeVersion,
   '@react-native/typescript-config': reactNativeVersion,
-  'react-native-test-app': '5.4.6',
+  'react-native-test-app': '5.4.16',
 };
 delete packageJson.devDependencies['react-native-builder-bob'];
 if (useAgp9Fixture) {
@@ -85,6 +85,10 @@ fs.writeFileSync(
     'enableScripts: true',
     'nodeLinker: node-modules',
     'npmMinimalAgeGate: 0',
+    'packageExtensions:',
+    '  babel-plugin-transform-flow-enums@0.0.2:',
+    '    peerDependencies:',
+    "      '@babel/core': ^7.0.0-0",
     '',
   ].join('\n')
 );

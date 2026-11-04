@@ -61,6 +61,52 @@ describe('compatibility app preparation', () => {
     expect(packageJson.dependencies['react-native']).toBe('0.76.9');
   });
 
+  it('declares the Babel peer required by the Flow enum transformer', () => {
+    const result = runPrepare(appDirectory, tarball);
+
+    expect(result.status).toBe(0);
+    const yarnConfig = fs.readFileSync(
+      path.join(appDirectory, '.yarnrc.yml'),
+      'utf8'
+    );
+    expect(yarnConfig).toContain(
+      [
+        'packageExtensions:',
+        '  babel-plugin-transform-flow-enums@0.0.2:',
+        '    peerDependencies:',
+        "      '@babel/core': ^7.0.0-0",
+      ].join('\n')
+    );
+    expect(yarnConfig).not.toContain('logFilters');
+  });
+
+  it.each([
+    ['0.87.1', '19.2.5'],
+    ['0.88.1', '19.3.0'],
+  ])('prepares an RN %s consumer with matching React', (rn, react) => {
+    const result = runPrepare(appDirectory, tarball, [
+      '--react-native',
+      rn,
+      '--react',
+      react,
+      '--architecture',
+      'new',
+    ]);
+
+    expect(result.status).toBe(0);
+    const packageJson = JSON.parse(
+      fs.readFileSync(path.join(appDirectory, 'package.json'), 'utf8')
+    );
+    expect(packageJson.dependencies['react-native']).toBe(rn);
+    expect(packageJson.dependencies.react).toBe(react);
+    expect(packageJson.devDependencies['@react-native/babel-preset']).toBe(rn);
+    expect(packageJson.devDependencies['@react-native/metro-config']).toBe(rn);
+    expect(packageJson.devDependencies['@react-native/typescript-config']).toBe(
+      rn
+    );
+    expect(packageJson.devDependencies['react-native-test-app']).toBe('5.4.16');
+  });
+
   it('updates generated Android and iOS projects', () => {
     const gradleDirectory = path.join(
       appDirectory,

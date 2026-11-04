@@ -46,6 +46,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@azizuysal/wallet-kit@workspace:."
   dependencies:
+    "@babel/core": "npm:^7.29.7"
     "@commitlint/config-conventional": "npm:^20.5.0"
     "@evilmartians/lefthook": "npm:^1.5.0"
     "@react-native-community/cli": "npm:20.2.0"
@@ -54,6 +55,7 @@ __metadata:
     "@react-native/jest-preset": "npm:0.86.2"
     "@testing-library/react-native": "npm:^13.3.3"
     "@types/jest": "npm:^29.5.5"
+    "@types/node": "npm:^24.19.2"
     "@types/react": "npm:^19.2.14"
     "@types/react-test-renderer": "npm:^19.1.0"
     commitlint: "npm:^20.5.0"
@@ -62,6 +64,7 @@ __metadata:
     eslint-config-prettier: "npm:^10.0.0"
     eslint-plugin-prettier: "npm:^5.2.0"
     globals: "npm:^17.5.0"
+    hermes-eslint: "npm:0.37.0"
     jest: "npm:^29.7.0"
     prettier: "npm:^3.8.3"
     react: "npm:19.2.5"
@@ -3262,6 +3265,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/node@npm:^24.19.2":
+  version: 24.19.2
+  resolution: "@types/node@npm:24.19.2"
+  dependencies:
+    undici-types: "npm:>=7.24.0 <7.24.7"
+  checksum: 10/5bc31df093f2866db0a2f9df0a1e99c2a46c3154ca2dc62ee14bde7af216d6361e4737e1023880921007ccb326b8559980e239e18a6fa927cda507da9383225c
+  languageName: node
+  linkType: hard
+
 "@types/normalize-package-data@npm:^2.4.0":
   version: 2.4.4
   resolution: "@types/normalize-package-data@npm:2.4.4"
@@ -6169,6 +6181,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"hermes-eslint@npm:0.37.0":
+  version: 0.37.0
+  resolution: "hermes-eslint@npm:0.37.0"
+  dependencies:
+    hermes-estree: "npm:0.37.0"
+    hermes-parser: "npm:0.37.0"
+  peerDependencies:
+    eslint: ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0
+  peerDependenciesMeta:
+    eslint:
+      optional: true
+  checksum: 10/57186ce157707608866a51986f8d556913e32f9324dcd8c13518daad2b22089fbcb1326677351f2b4aea6c248106aebdc15c5e771772253ad5bd437e08581399
+  languageName: node
+  linkType: hard
+
 "hermes-estree@npm:0.25.1":
   version: 0.25.1
   resolution: "hermes-estree@npm:0.25.1"
@@ -6197,6 +6224,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"hermes-estree@npm:0.37.0":
+  version: 0.37.0
+  resolution: "hermes-estree@npm:0.37.0"
+  checksum: 10/c02f02c44f92f2ae8acb4f3377d714fc1bbdcc05913cfeaac92d598fe6c7010f99b13ec01b4c82bc0dd30ffe5f42a2c5f3f082690bcb8c6e92a420170950e7f3
+  languageName: node
+  linkType: hard
+
 "hermes-parser@npm:0.34.0":
   version: 0.34.0
   resolution: "hermes-parser@npm:0.34.0"
@@ -6221,6 +6255,15 @@ __metadata:
   dependencies:
     hermes-estree: "npm:0.36.0"
   checksum: 10/81150c00bd8da17187f421a75e6e427187465386681427024f3dc51de996c44cee18fb062d95254028aa1f4ffcdbe7cbdeda50e6edece5c378c9f909067f5bae
+  languageName: node
+  linkType: hard
+
+"hermes-parser@npm:0.37.0":
+  version: 0.37.0
+  resolution: "hermes-parser@npm:0.37.0"
+  dependencies:
+    hermes-estree: "npm:0.37.0"
+  checksum: 10/50bd01f6165d99b83c1a88003df137b66999a8c74a8673fcf2026db2b848dc6f875e35978ab652d0f5917af28b23c16f06396dcf3830bfa450d008380ba9f71b
   languageName: node
   linkType: hard
 
@@ -10517,6 +10560,13 @@ __metadata:
     has-symbols: "npm:^1.1.0"
     which-boxed-primitive: "npm:^1.1.1"
   checksum: 10/fadb347020f66b2c8aeacf8b9a79826fa34cc5e5457af4eb0bbc4e79bd87fed0fa795949825df534320f7c13f199259516ad30abc55a6e7b91d8d996ca069e50
+  languageName: node
+  linkType: hard
+
+"undici-types@npm:>=7.24.0 <7.24.7":
+  version: 7.24.6
+  resolution: "undici-types@npm:7.24.6"
+  checksum: 10/defc9538b952e3c15b8526596c591f7c1f0c7605ad27a2b7feddbea7ef2e3003f3eda2cdb051a3cb1a2185e3893100fd9cb925c799db99d48131ea63b5233d10
   languageName: node
   linkType: hard
 

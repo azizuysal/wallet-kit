@@ -128,14 +128,14 @@ jobs:
         run: ./gradlew :app:assembleRelease -PreactNativeArchitectures=x86_64 --stacktrace
 
       - name: Enable KVM group permissions
-        if: matrix.rn == '0.86.2' && matrix.architecture == 'new'
+        if: matrix.rn == '0.88.1' && matrix.architecture == 'new'
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
       - name: Launch current stable app and exercise native button
-        if: matrix.rn == '0.86.2' && matrix.architecture == 'new'
+        if: matrix.rn == '0.88.1' && matrix.architecture == 'new'
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
@@ -290,7 +290,7 @@ jobs:
           node -e "const fs=require('fs'); const summary=JSON.parse(fs.readFileSync(process.argv[1], 'utf8')); if (summary.result !== 'Passed' || summary.totalTestCount !== 12 || summary.passedTests !== 12 || summary.failedTests !== 0 || summary.skippedTests !== 0) { throw new Error('Expected all 12 WalletKitTests to pass; received ' + JSON.stringify({ result: summary.result, totalTestCount: summary.totalTestCount, passedTests: summary.passedTests, failedTests: summary.failedTests, skippedTests: summary.skippedTests })); }" "$RESULT_SUMMARY"
 
       - name: Launch current stable iOS app
-        if: matrix.rn == '0.86.2' && matrix.architecture == 'new'
+        if: matrix.rn == '0.88.1' && matrix.architecture == 'new'
         env:
           APP_DIR: ${{ runner.temp }}/wallet-kit-ios-${{ matrix.rn }}-${{ matrix.architecture }}
         run: |

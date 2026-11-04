@@ -45,6 +45,8 @@
     { "version": "0.83.10", "react": "19.2.0", "architectures": ["new"] },
     { "version": "0.84.1", "react": "19.2.3", "architectures": ["new"] },
     { "version": "0.85.3", "react": "19.2.3", "architectures": ["new"] },
-    { "version": "0.86.2", "react": "19.2.5", "architectures": ["new"] }
+    { "version": "0.86.2", "react": "19.2.5", "architectures": ["new"] },
+    { "version": "0.87.1", "react": "19.2.5", "architectures": ["new"] },
+    { "version": "0.88.1", "react": "19.3.0", "architectures": ["new"] }
   ]
 }

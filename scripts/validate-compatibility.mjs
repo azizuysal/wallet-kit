@@ -15,6 +15,8 @@ const expectedVersions = [
   '0.84.1',
   '0.85.3',
   '0.86.2',
+  '0.87.1',
+  '0.88.1',
 ];
 
 const actualVersions = manifest.reactNative.map(({ version }) => version);

@@ -4,6 +4,11 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+### Compatibility
+
+- Added React Native 0.87.1 with React 19.2.5 and React Native 0.88.1 with React 19.3.0 to the blocking Android/iOS matrix, using the New Architecture.
+- Moved current-stable release builds and smoke checks to React Native 0.88.1 and updated generated consumers to React Native Test App 5.4.16.
+
 ## [2.0.1] - 2026-09-11
 
 ### Bug Fixes
