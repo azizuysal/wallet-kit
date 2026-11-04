@@ -213,7 +213,7 @@ jobs:
   ios:
     name: iOS RN ${{ matrix.rn }} ${{ matrix.architecture }}
     needs: [matrix, package]
-    runs-on: macos-15
+    runs-on: macos-15-intel
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.matrix.outputs.cells) }}
@@ -320,7 +320,7 @@ jobs:
           - platform: android
             os: ubuntu-latest
           - platform: ios
-            os: macos-15
+            os: macos-15-intel
     runs-on: ${{ matrix.os }}
     env:
       RCT_NEW_ARCH_ENABLED: '1'
