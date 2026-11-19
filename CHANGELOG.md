@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [2.0.2] - 2026-11-19
+
+### Bug Fixes
+
+- Both the standard and condensed Google Wallet buttons now display the correct artwork for Finnish, Filipino, and French on Android. [#32](https://github.com/azizuysal/wallet-kit/pull/32)
+
 ### Compatibility
 
 - Added React Native 0.87.1 with React 19.2.5 and React Native 0.88.1 with React 19.3.0 to the blocking Android/iOS matrix, using the New Architecture.
@@ -170,7 +176,8 @@ Thanks to @gabrieldonadel for the contribution in #29.
 - Event handling system
 - Error handling with specific error codes
 
-[Unreleased]: https://github.com/azizuysal/wallet-kit/compare/v2.0.1...HEAD
+[Unreleased]: https://github.com/azizuysal/wallet-kit/compare/v2.0.2...HEAD
+[2.0.2]: https://github.com/azizuysal/wallet-kit/compare/v2.0.1...v2.0.2
 [2.0.1]: https://github.com/azizuysal/wallet-kit/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/azizuysal/wallet-kit/compare/v1.1.0...v2.0.0
 [1.1.0]: https://github.com/azizuysal/wallet-kit/compare/v1.0.0...v1.1.0
