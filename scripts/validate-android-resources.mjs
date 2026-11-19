@@ -26,6 +26,7 @@ const expectedCorrectedQualifiers = new Set([
   'be',
   'cs',
   'da',
+  'fi',
   'fil',
   'fr',
   'el',
